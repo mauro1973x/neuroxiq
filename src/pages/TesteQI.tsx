@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Clock, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Brain, Clock, CheckCircle, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -8,21 +8,64 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import IQTestTimer from '@/components/quiz/IQTestTimer';
 import IQTestQuestion from '@/components/quiz/IQTestQuestion';
-import IQTestResult from '@/components/quiz/IQTestResult';
 import { iqQuestions, getResultBand } from '@/data/iqQuestions';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 type TestPhase = 'intro' | 'test' | 'result';
 
 const TesteQI = () => {
   const navigate = useNavigate();
+  const { user, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
+  
   const [phase, setPhase] = useState<TestPhase>('intro');
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(new Array(iqQuestions.length).fill(null));
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [attemptId, setAttemptId] = useState<string | null>(null);
 
-  const handleStartTest = () => {
-    setPhase('test');
-    setIsTimerRunning(true);
+  // Get or create quiz ID (using first quiz from database or local fallback)
+  const QUIZ_ID = 'iq-test-v1';
+
+  const handleStartTest = async () => {
+    if (!user) {
+      toast({
+        title: 'Login necessário',
+        description: 'Faça login para iniciar o teste e salvar seu resultado.',
+        variant: 'destructive',
+      });
+      navigate('/login');
+      return;
+    }
+
+    try {
+      // Create test attempt in database
+      const { data: attempt, error } = await supabase
+        .from('test_attempts')
+        .insert({
+          user_id: user.id,
+          quiz_id: QUIZ_ID,
+          started_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setAttemptId(attempt.id);
+      setPhase('test');
+      setIsTimerRunning(true);
+    } catch (error) {
+      console.error('Error starting test:', error);
+      toast({
+        title: 'Erro ao iniciar teste',
+        description: 'Tente novamente.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleAnswerSelect = (answer: number) => {
@@ -43,23 +86,59 @@ const TesteQI = () => {
     }
   };
 
-  const handleFinishTest = useCallback(() => {
-    setIsTimerRunning(false);
-    setPhase('result');
-  }, []);
-
-  const handleTimeUp = useCallback(() => {
-    handleFinishTest();
-  }, [handleFinishTest]);
-
-  const calculateScore = (): number => {
+  const calculateScore = useCallback((): number => {
     return answers.reduce((score, answer, index) => {
       if (answer !== null && answer === iqQuestions[index].correctAnswer) {
         return score + 1;
       }
       return score;
     }, 0);
-  };
+  }, [answers]);
+
+  const handleFinishTest = useCallback(async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setIsTimerRunning(false);
+
+    const score = calculateScore();
+    const resultBand = getResultBand(score);
+
+    if (!attemptId || !user) {
+      // Fallback: show result without saving
+      navigate(`/resultado/local?score=${score}`);
+      return;
+    }
+
+    try {
+      // Save result to database
+      const { error } = await supabase
+        .from('test_attempts')
+        .update({
+          completed_at: new Date().toISOString(),
+          total_score: score,
+          result_category: resultBand.name,
+          result_description: resultBand.freeDescription,
+        })
+        .eq('id', attemptId);
+
+      if (error) throw error;
+
+      // Navigate to result page
+      navigate(`/resultado/${attemptId}`);
+    } catch (error) {
+      console.error('Error saving result:', error);
+      toast({
+        title: 'Erro ao salvar resultado',
+        description: 'Seu resultado foi calculado, mas houve um erro ao salvar.',
+        variant: 'destructive',
+      });
+      navigate(`/resultado/${attemptId}`);
+    }
+  }, [attemptId, user, calculateScore, isSubmitting, navigate, toast]);
+
+  const handleTimeUp = useCallback(() => {
+    handleFinishTest();
+  }, [handleFinishTest]);
 
   const answeredCount = answers.filter(a => a !== null).length;
   const progressPercent = ((currentQuestion + 1) / iqQuestions.length) * 100;
@@ -142,25 +221,12 @@ const TesteQI = () => {
     );
   }
 
-  // Result Phase
+  // Redirect to result page if phase is result (shouldn't happen with new flow)
   if (phase === 'result') {
-    const score = calculateScore();
-    const resultBand = getResultBand(score);
-
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Header />
-        <main className="flex-1 container py-12">
-          <IQTestResult
-            score={score}
-            totalQuestions={iqQuestions.length}
-            resultBand={resultBand}
-            showPremium={false}
-          />
-        </main>
-        <Footer />
-      </div>
-    );
+    if (attemptId) {
+      navigate(`/resultado/${attemptId}`);
+    }
+    return null;
   }
 
   // Test Phase
