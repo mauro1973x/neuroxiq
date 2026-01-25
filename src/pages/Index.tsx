@@ -15,13 +15,13 @@ const demoQuizzes: Quiz[] = [
       "Avalie sua capacidade cognitiva com nosso teste de QI cientificamente validado. Receba um resultado detalhado.",
     test_type: "iq",
     image_url: null,
-    duration_minutes: 30,
-    question_count: 30,
+    duration_minutes: 45,
+    question_count: 40,
     is_premium: true,
     is_published: true,
     price_basic: 0,
-    price_premium: 19.9,
-    price_certificate: 9.9,
+    price_premium: 49.9,
+    price_certificate: 29.9,
     created_at: new Date().toISOString(),
   },
   {
@@ -31,12 +31,12 @@ const demoQuizzes: Quiz[] = [
     test_type: "personality",
     image_url: null,
     duration_minutes: 25,
-    question_count: 40,
+    question_count: 60,
     is_premium: false,
     is_published: true,
     price_basic: 0,
-    price_premium: 19.9,
-    price_certificate: 9.9,
+    price_premium: 39.9,
+    price_certificate: 19.9,
     created_at: new Date().toISOString(),
   },
   {
@@ -50,8 +50,8 @@ const demoQuizzes: Quiz[] = [
     is_premium: true,
     is_published: true,
     price_basic: 0,
-    price_premium: 29.9,
-    price_certificate: 14.9,
+    price_premium: 59.9,
+    price_certificate: 24.9,
     created_at: new Date().toISOString(),
   },
 ];
@@ -146,7 +146,7 @@ const Index = () => {
                 <div className="text-sm text-muted-foreground">Usuários</div>
               </div>
               <div>
-                <div className="font-display text-3xl md:text-4xl font-bold text-foreground">15+</div>
+                <div className="font-display text-3xl md:text-4xl font-bold text-foreground">5+</div>
                 <div className="text-sm text-muted-foreground">Tipos de Teste</div>
               </div>
               <div>
