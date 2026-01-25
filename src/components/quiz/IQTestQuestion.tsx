@@ -43,7 +43,7 @@ const IQTestQuestion = ({
 
       {/* Options */}
       <RadioGroup
-        value={selectedAnswer !== null ? selectedAnswer.toString() : undefined}
+        value={selectedAnswer !== null ? selectedAnswer.toString() : ""}
         onValueChange={(value) => onAnswerSelect(parseInt(value))}
         className="space-y-3"
       >
