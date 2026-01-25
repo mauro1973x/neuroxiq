@@ -2,10 +2,10 @@ import { Link } from 'react-router-dom';
 import { Clock, Users, Star, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Quiz, TEST_TYPE_LABELS, TEST_TYPE_ICONS, TEST_TYPE_COLORS } from '@/lib/types';
+import { Quiz, QuizSecure, TEST_TYPE_LABELS, TEST_TYPE_ICONS, TEST_TYPE_COLORS } from '@/lib/types';
 
 interface QuizCardProps {
-  quiz: Quiz;
+  quiz: Quiz | QuizSecure;
 }
 
 const QuizCard = ({ quiz }: QuizCardProps) => {
@@ -50,7 +50,7 @@ const QuizCard = ({ quiz }: QuizCardProps) => {
       </div>
 
       {/* CTA */}
-      <Link to={`/teste/${quiz.id}`}>
+      <Link to={quiz.test_type === 'iq' ? '/teste-qi' : `/teste/${quiz.id}`}>
         <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all">
           Começar Teste
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

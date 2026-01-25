@@ -9,13 +9,13 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import QuizCard from '@/components/quiz/QuizCard';
 import { supabase } from '@/integrations/supabase/client';
-import { Quiz, TestType, TEST_TYPE_LABELS } from '@/lib/types';
+import { QuizSecure, TestType, TEST_TYPE_LABELS } from '@/lib/types';
 
 const testTypes: (TestType | 'all')[] = ['all', 'iq', 'personality', 'political', 'career', 'emotional', 'cognitive'];
 
 const Testes = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [quizzes, setQuizzes] = useState<QuizSecure[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<TestType | 'all'>(
@@ -25,10 +25,10 @@ const Testes = () => {
   useEffect(() => {
     const fetchQuizzes = async () => {
       setIsLoading(true);
+      // Use secure view that hides internal pricing data
       let query = supabase
-        .from('quizzes')
+        .from('quizzes_secure')
         .select('*')
-        .eq('is_published', true)
         .order('created_at', { ascending: false });
 
       if (selectedType !== 'all') {
@@ -38,7 +38,7 @@ const Testes = () => {
       const { data, error } = await query;
 
       if (!error && data) {
-        setQuizzes(data as Quiz[]);
+        setQuizzes(data as QuizSecure[]);
       }
       setIsLoading(false);
     };
