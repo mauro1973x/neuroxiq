@@ -27,8 +27,8 @@ const TesteQI = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attemptId, setAttemptId] = useState<string | null>(null);
 
-  // Get or create quiz ID (using first quiz from database or local fallback)
-  const QUIZ_ID = 'iq-test-v1';
+  // Quiz ID from database
+  const QUIZ_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
   const handleStartTest = async () => {
     if (!user) {
