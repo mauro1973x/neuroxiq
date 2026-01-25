@@ -1,25 +1,25 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 
 const benefits = [
-  'Acesso a testes gratuitos',
-  'Histórico completo de resultados',
-  'Certificados personalizados',
-  'Relatórios detalhados premium',
+  "Acesso a testes gratuitos",
+  "Histórico completo de resultados",
+  "Certificados personalizados",
+  "Relatórios detalhados premium",
 ];
 
 const Cadastro = () => {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
@@ -31,9 +31,9 @@ const Cadastro = () => {
 
     if (password.length < 6) {
       toast({
-        title: 'Senha muito curta',
-        description: 'A senha deve ter pelo menos 6 caracteres.',
-        variant: 'destructive',
+        title: "Senha muito curta",
+        description: "A senha deve ter pelo menos 6 caracteres.",
+        variant: "destructive",
       });
       return;
     }
@@ -44,16 +44,16 @@ const Cadastro = () => {
 
     if (error) {
       toast({
-        title: 'Erro ao criar conta',
-        description: error.message || 'Tente novamente mais tarde.',
-        variant: 'destructive',
+        title: "Erro ao criar conta",
+        description: error.message || "Tente novamente mais tarde.",
+        variant: "destructive",
       });
     } else {
       toast({
-        title: 'Conta criada com sucesso!',
-        description: 'Bem-vindo ao QuizMaster.',
+        title: "Conta criada com sucesso!",
+        description: "Bem-vindo ao NEUROX.",
       });
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
 
     setIsLoading(false);
@@ -72,8 +72,7 @@ const Cadastro = () => {
               <span className="text-gradient-primary"> Autoconhecimento</span>
             </h2>
             <p className="text-muted-foreground mb-8">
-              Junte-se a mais de 50.000 pessoas que já descobriram mais sobre
-              si mesmas com nossos testes científicos.
+              Junte-se a mais de 50.000 pessoas que já descobriram mais sobre si mesmas com nossos testes científicos.
             </p>
             <ul className="space-y-4">
               {benefits.map((benefit, index) => (
@@ -90,12 +89,8 @@ const Cadastro = () => {
           {/* Form */}
           <div className="glass-card p-8">
             <div className="text-center mb-8">
-              <h1 className="font-display text-2xl font-bold mb-2">
-                Criar Conta Grátis
-              </h1>
-              <p className="text-muted-foreground">
-                Preencha os dados abaixo para começar
-              </p>
+              <h1 className="font-display text-2xl font-bold mb-2">Criar Conta Grátis</h1>
+              <p className="text-muted-foreground">Preencha os dados abaixo para começar</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -137,7 +132,7 @@ const Cadastro = () => {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="Mínimo 6 caracteres"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -150,32 +145,22 @@ const Cadastro = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                variant="hero"
-                className="w-full"
-                size="lg"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Criando conta...' : 'Criar Conta Grátis'}
+              <Button type="submit" variant="hero" className="w-full" size="lg" disabled={isLoading}>
+                {isLoading ? "Criando conta..." : "Criar Conta Grátis"}
                 <ArrowRight className="h-4 w-4" />
               </Button>
 
               <p className="text-xs text-center text-muted-foreground">
-                Ao criar uma conta, você concorda com nossos{' '}
+                Ao criar uma conta, você concorda com nossos{" "}
                 <Link to="/termos" className="text-primary hover:underline">
                   Termos de Uso
-                </Link>{' '}
-                e{' '}
+                </Link>{" "}
+                e{" "}
                 <Link to="/privacidade" className="text-primary hover:underline">
                   Política de Privacidade
                 </Link>
@@ -184,11 +169,8 @@ const Cadastro = () => {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Já tem uma conta?{' '}
-                <Link
-                  to="/login"
-                  className="text-primary font-medium hover:underline"
-                >
+                Já tem uma conta?{" "}
+                <Link to="/login" className="text-primary font-medium hover:underline">
                   Entrar
                 </Link>
               </p>

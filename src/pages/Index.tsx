@@ -146,7 +146,7 @@ const Index = () => {
                 <div className="text-sm text-muted-foreground">Usuários</div>
               </div>
               <div>
-                <div className="font-display text-3xl md:text-4xl font-bold text-foreground">5+</div>
+                <div className="font-display text-3xl md:text-4xl font-bold text-foreground">15+</div>
                 <div className="text-sm text-muted-foreground">Tipos de Teste</div>
               </div>
               <div>
@@ -189,7 +189,7 @@ const Index = () => {
       <section className="py-20 bg-muted/30">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Por Que Escolher o QuizMaster?</h2>
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Por Que Escolher o NEUROX?</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Uma plataforma completa para você descobrir mais sobre si mesmo com credibilidade.
             </p>
