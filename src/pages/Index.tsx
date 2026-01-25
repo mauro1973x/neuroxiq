@@ -15,8 +15,8 @@ const demoQuizzes: Quiz[] = [
       "Avalie sua capacidade cognitiva com nosso teste de QI cientificamente validado. Receba um resultado detalhado.",
     test_type: "iq",
     image_url: null,
-    duration_minutes: 45,
-    question_count: 40,
+    duration_minutes: 30,
+    question_count: 30,
     is_premium: true,
     is_published: true,
     price_basic: 0,
@@ -30,8 +30,8 @@ const demoQuizzes: Quiz[] = [
     description: "Descubra seu tipo de personalidade entre os 16 perfis e entenda melhor seus pontos fortes.",
     test_type: "personality",
     image_url: null,
-    duration_minutes: 25,
-    question_count: 60,
+    duration_minutes: 30,
+    question_count: 40,
     is_premium: false,
     is_published: true,
     price_basic: 0,
@@ -46,7 +46,7 @@ const demoQuizzes: Quiz[] = [
     test_type: "career",
     image_url: null,
     duration_minutes: 30,
-    question_count: 35,
+    question_count: 40,
     is_premium: true,
     is_published: true,
     price_basic: 0,
@@ -146,7 +146,7 @@ const Index = () => {
                 <div className="text-sm text-muted-foreground">Usuários</div>
               </div>
               <div>
-                <div className="font-display text-3xl md:text-4xl font-bold text-foreground">15+</div>
+                <div className="font-display text-3xl md:text-4xl font-bold text-foreground">5+</div>
                 <div className="text-sm text-muted-foreground">Tipos de Teste</div>
               </div>
               <div>
