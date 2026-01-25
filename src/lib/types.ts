@@ -1,5 +1,6 @@
 export type TestType = 'iq' | 'personality' | 'political' | 'career' | 'emotional' | 'cognitive';
 
+// Quiz interface - includes pricing (for admin use)
 export interface Quiz {
   id: string;
   title: string;
@@ -10,28 +11,65 @@ export interface Quiz {
   question_count: number;
   is_premium: boolean;
   is_published: boolean;
-  price_basic: number;
-  price_premium: number;
-  price_certificate: number;
+  price_basic?: number | null;
+  price_premium?: number | null;
+  price_certificate?: number | null;
   created_at: string;
+  updated_at?: string;
 }
 
+// Secure Quiz interface - excludes sensitive pricing data (for public use)
+export interface QuizSecure {
+  id: string;
+  title: string;
+  description: string | null;
+  test_type: TestType;
+  image_url: string | null;
+  duration_minutes: number;
+  question_count: number;
+  is_premium: boolean;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Question interface - includes scoring data (for admin/server use)
 export interface Question {
   id: string;
   quiz_id: string;
   question_text: string;
   question_order: number;
-  weight: number;
-  category: string | null;
+  weight?: number | null;
+  category?: string | null;
 }
 
+// Secure Question interface - excludes scoring data (for public use)
+export interface QuestionSecure {
+  id: string;
+  quiz_id: string;
+  question_text: string;
+  question_order: number;
+  created_at: string;
+}
+
+// Answer Option interface - includes score_value (for server-side scoring only)
 export interface AnswerOption {
   id: string;
   question_id: string;
   option_text: string;
   option_order: number;
-  score_value: number;
-  personality_trait: string | null;
+  score_value?: number | null;
+  personality_trait?: string | null;
+}
+
+// Secure Answer Option interface - excludes score_value (for public use)
+export interface AnswerOptionSecure {
+  id: string;
+  question_id: string;
+  option_text: string;
+  option_order: number;
+  personality_trait?: string | null;
+  created_at: string;
 }
 
 export interface TestAttempt {

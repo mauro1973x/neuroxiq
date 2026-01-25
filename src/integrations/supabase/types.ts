@@ -50,6 +50,13 @@ export type Database = {
             referencedRelation: "questions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "answer_options_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       iq_result_bands: {
@@ -293,6 +300,13 @@ export type Database = {
             referencedRelation: "quizzes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       quizzes: {
@@ -445,6 +459,13 @@ export type Database = {
             referencedRelation: "quizzes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "test_attempts_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_answers: {
@@ -482,6 +503,13 @@ export type Database = {
             columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions_secure"
             referencedColumns: ["id"]
           },
           {
@@ -556,7 +584,56 @@ export type Database = {
             referencedRelation: "questions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "answer_options_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions_secure"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      iq_result_bands_free: {
+        Row: {
+          band_order: number | null
+          created_at: string | null
+          free_description: string | null
+          id: string | null
+          iq_max: number | null
+          iq_min: number | null
+          max_score: number | null
+          min_score: number | null
+          name: string | null
+          percentile_max: number | null
+          percentile_min: number | null
+        }
+        Insert: {
+          band_order?: number | null
+          created_at?: string | null
+          free_description?: string | null
+          id?: string | null
+          iq_max?: number | null
+          iq_min?: number | null
+          max_score?: number | null
+          min_score?: number | null
+          name?: string | null
+          percentile_max?: number | null
+          percentile_min?: number | null
+        }
+        Update: {
+          band_order?: number | null
+          created_at?: string | null
+          free_description?: string | null
+          id?: string | null
+          iq_max?: number | null
+          iq_min?: number | null
+          max_score?: number | null
+          min_score?: number | null
+          name?: string | null
+          percentile_max?: number | null
+          percentile_min?: number | null
+        }
+        Relationships: []
       }
       payments_secure: {
         Row: {
@@ -658,6 +735,87 @@ export type Database = {
           },
         ]
       }
+      questions_secure: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          question_order: number | null
+          question_text: string | null
+          quiz_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          question_order?: number | null
+          question_text?: string | null
+          quiz_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          question_order?: number | null
+          question_text?: string | null
+          quiz_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes_secure"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quizzes_secure: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string | null
+          image_url: string | null
+          is_premium: boolean | null
+          is_published: boolean | null
+          question_count: number | null
+          test_type: Database["public"]["Enums"]["test_type"] | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string | null
+          image_url?: string | null
+          is_premium?: boolean | null
+          is_published?: boolean | null
+          question_count?: number | null
+          test_type?: Database["public"]["Enums"]["test_type"] | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string | null
+          image_url?: string | null
+          is_premium?: boolean | null
+          is_published?: boolean | null
+          question_count?: number | null
+          test_type?: Database["public"]["Enums"]["test_type"] | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       subscriptions_secure: {
         Row: {
           created_at: string | null
@@ -696,6 +854,26 @@ export type Database = {
           max_possible: number
           percentage: number
           total_score: number
+        }[]
+      }
+      get_premium_result_band: {
+        Args: { p_attempt_id: string }
+        Returns: {
+          band_order: number
+          career_areas: string[]
+          challenges: string[]
+          free_description: string
+          id: string
+          iq_max: number
+          iq_min: number
+          max_score: number
+          min_score: number
+          name: string
+          percentile_max: number
+          percentile_min: number
+          premium_description: string
+          recommendations: string[]
+          strengths: string[]
         }[]
       }
       has_role: {
