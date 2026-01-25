@@ -10,6 +10,7 @@ import Cadastro from "./pages/Cadastro";
 import Dashboard from "./pages/Dashboard";
 import Testes from "./pages/Testes";
 import TesteQI from "./pages/TesteQI";
+import Resultado from "./pages/Resultado";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/testes" element={<Testes />} />
             <Route path="/teste/1" element={<TesteQI />} />
+            <Route path="/resultado/:attemptId" element={<Resultado />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
