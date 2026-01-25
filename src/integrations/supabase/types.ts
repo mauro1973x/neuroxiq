@@ -491,6 +491,13 @@ export type Database = {
             referencedRelation: "answer_options"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_answers_selected_option_id_fkey"
+            columns: ["selected_option_id"]
+            isOneToOne: false
+            referencedRelation: "answer_options_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
@@ -516,9 +523,181 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      answer_options_secure: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          option_order: number | null
+          option_text: string | null
+          personality_trait: string | null
+          question_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          option_order?: number | null
+          option_text?: string | null
+          personality_trait?: string | null
+          question_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          option_order?: number | null
+          option_text?: string | null
+          personality_trait?: string | null
+          question_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "answer_options_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments_secure: {
+        Row: {
+          amount: number | null
+          attempt_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          currency: string | null
+          id: string | null
+          payment_type: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          attempt_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string | null
+          payment_type?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          attempt_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string | null
+          payment_type?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      premium_purchases_secure: {
+        Row: {
+          amount: number | null
+          attempt_id: string | null
+          certificate_generated_at: string | null
+          created_at: string | null
+          currency: string | null
+          email_sent_at: string | null
+          id: string | null
+          payment_method: string | null
+          payment_status: string | null
+          purchase_type: string | null
+          report_generated_at: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          attempt_id?: string | null
+          certificate_generated_at?: string | null
+          created_at?: string | null
+          currency?: string | null
+          email_sent_at?: string | null
+          id?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          purchase_type?: string | null
+          report_generated_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          attempt_id?: string | null
+          certificate_generated_at?: string | null
+          created_at?: string | null
+          currency?: string | null
+          email_sent_at?: string | null
+          id?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          purchase_type?: string | null
+          report_generated_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "premium_purchases_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions_secure: {
+        Row: {
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      calculate_test_score: {
+        Args: { p_attempt_id: string }
+        Returns: {
+          max_possible: number
+          percentage: number
+          total_score: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
