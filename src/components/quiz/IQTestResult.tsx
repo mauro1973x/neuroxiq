@@ -1,9 +1,9 @@
-import { Link } from 'react-router-dom';
-import { Award, Lock, ArrowRight, Brain, TrendingUp, Star } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { IQResultBand } from '@/data/iqQuestions';
+import { Link } from "react-router-dom";
+import { Award, Lock, ArrowRight, Brain, TrendingUp, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { IQResultBand } from "@/data/iqQuestions";
 
 interface IQTestResultProps {
   score: number;
@@ -31,9 +31,7 @@ const IQTestResult = ({ score, totalQuestions, resultBand, showPremium }: IQTest
             <div className="text-6xl font-bold text-primary mb-2">
               {score}/{totalQuestions}
             </div>
-            <div className="text-lg text-muted-foreground">
-              Pontuação: {percentage}%
-            </div>
+            <div className="text-lg text-muted-foreground">Pontuação: {percentage}%</div>
             <Progress value={percentage} className="mt-4 h-3" />
           </div>
 
@@ -53,9 +51,7 @@ const IQTestResult = ({ score, totalQuestions, resultBand, showPremium }: IQTest
               <TrendingUp className="h-5 w-5 text-primary" />
               Análise Básica
             </h3>
-            <p className="text-muted-foreground leading-relaxed">
-              {resultBand.freeDescription}
-            </p>
+            <p className="text-muted-foreground leading-relaxed">{resultBand.freeDescription}</p>
           </div>
 
           {/* Premium Section */}
@@ -69,13 +65,13 @@ const IQTestResult = ({ score, totalQuestions, resultBand, showPremium }: IQTest
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Desbloqueie sua análise completa com interpretações detalhadas, 
-                  recomendações personalizadas e comparativo com a população.
+                  Desbloqueie sua análise completa com interpretações detalhadas, recomendações personalizadas e
+                  comparativo com a população.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button variant="premium" className="flex-1">
                     <Award className="h-4 w-4" />
-                    Desbloquear por R$ 49,90
+                    Desbloquear por R$ 19,90
                   </Button>
                 </div>
               </CardContent>
@@ -111,9 +107,8 @@ const IQTestResult = ({ score, totalQuestions, resultBand, showPremium }: IQTest
 
       {/* Disclaimer */}
       <p className="text-xs text-center text-muted-foreground max-w-md mx-auto">
-        Este é um teste cognitivo de caráter informativo e educacional. 
-        Os resultados não constituem diagnóstico clínico e não substituem 
-        avaliação profissional por psicólogo ou neuropsicólogo.
+        Este é um teste cognitivo de caráter informativo e educacional. Os resultados não constituem diagnóstico clínico
+        e não substituem avaliação profissional por psicólogo ou neuropsicólogo.
       </p>
     </div>
   );
