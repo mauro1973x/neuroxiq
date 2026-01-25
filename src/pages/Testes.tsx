@@ -1,0 +1,165 @@
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Search, Filter } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
+import QuizCard from '@/components/quiz/QuizCard';
+import { supabase } from '@/integrations/supabase/client';
+import { Quiz, TestType, TEST_TYPE_LABELS } from '@/lib/types';
+
+const testTypes: (TestType | 'all')[] = ['all', 'iq', 'personality', 'political', 'career', 'emotional', 'cognitive'];
+
+const Testes = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState<TestType | 'all'>(
+    (searchParams.get('tipo') as TestType) || 'all'
+  );
+
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      setIsLoading(true);
+      let query = supabase
+        .from('quizzes')
+        .select('*')
+        .eq('is_published', true)
+        .order('created_at', { ascending: false });
+
+      if (selectedType !== 'all') {
+        query = query.eq('test_type', selectedType);
+      }
+
+      const { data, error } = await query;
+
+      if (!error && data) {
+        setQuizzes(data as Quiz[]);
+      }
+      setIsLoading(false);
+    };
+
+    fetchQuizzes();
+  }, [selectedType]);
+
+  const handleTypeChange = (type: TestType | 'all') => {
+    setSelectedType(type);
+    if (type === 'all') {
+      searchParams.delete('tipo');
+    } else {
+      searchParams.set('tipo', type);
+    }
+    setSearchParams(searchParams);
+  };
+
+  const filteredQuizzes = quizzes.filter((quiz) =>
+    quiz.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    quiz.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+
+      <main className="flex-1 py-12">
+        <div className="container">
+          {/* Header */}
+          <div className="text-center mb-10">
+            <h1 className="font-display text-4xl font-bold mb-4">
+              Catálogo de Testes
+            </h1>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Explore nossa coleção de testes científicos e descubra mais sobre
+              sua personalidade, inteligência e potencial.
+            </p>
+          </div>
+
+          {/* Search and Filter */}
+          <div className="flex flex-col md:flex-row gap-4 mb-8">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar testes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+              <Filter className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              {testTypes.map((type) => (
+                <Button
+                  key={type}
+                  variant={selectedType === type ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleTypeChange(type)}
+                  className="flex-shrink-0"
+                >
+                  {type === 'all' ? 'Todos' : TEST_TYPE_LABELS[type]}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Results count */}
+          {!isLoading && (
+            <div className="mb-6">
+              <Badge variant="secondary">
+                {filteredQuizzes.length} teste{filteredQuizzes.length !== 1 ? 's' : ''} encontrado{filteredQuizzes.length !== 1 ? 's' : ''}
+              </Badge>
+            </div>
+          )}
+
+          {/* Quiz Grid */}
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array(6)
+                .fill(0)
+                .map((_, i) => (
+                  <div key={i} className="glass-card p-6">
+                    <Skeleton className="h-12 w-12 rounded-xl mb-4" />
+                    <Skeleton className="h-6 w-20 mb-3" />
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-full mb-4" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                ))}
+            </div>
+          ) : filteredQuizzes.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted mx-auto mb-4">
+                <Search className="h-10 w-10 text-muted-foreground" />
+              </div>
+              <h3 className="font-display text-xl font-semibold mb-2">
+                Nenhum teste encontrado
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Tente ajustar sua busca ou filtros
+              </p>
+              <Button variant="outline" onClick={() => {
+                setSearchQuery('');
+                handleTypeChange('all');
+              }}>
+                Limpar filtros
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredQuizzes.map((quiz) => (
+                <QuizCard key={quiz.id} quiz={quiz} />
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default Testes;
