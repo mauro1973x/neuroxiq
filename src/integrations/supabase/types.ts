@@ -52,6 +52,63 @@ export type Database = {
           },
         ]
       }
+      iq_result_bands: {
+        Row: {
+          band_order: number
+          career_areas: string[] | null
+          challenges: string[] | null
+          created_at: string
+          free_description: string
+          id: string
+          iq_max: number
+          iq_min: number
+          max_score: number
+          min_score: number
+          name: string
+          percentile_max: number
+          percentile_min: number
+          premium_description: string
+          recommendations: string[] | null
+          strengths: string[] | null
+        }
+        Insert: {
+          band_order: number
+          career_areas?: string[] | null
+          challenges?: string[] | null
+          created_at?: string
+          free_description: string
+          id?: string
+          iq_max: number
+          iq_min: number
+          max_score: number
+          min_score: number
+          name: string
+          percentile_max: number
+          percentile_min: number
+          premium_description: string
+          recommendations?: string[] | null
+          strengths?: string[] | null
+        }
+        Update: {
+          band_order?: number
+          career_areas?: string[] | null
+          challenges?: string[] | null
+          created_at?: string
+          free_description?: string
+          id?: string
+          iq_max?: number
+          iq_min?: number
+          max_score?: number
+          min_score?: number
+          name?: string
+          percentile_max?: number
+          percentile_min?: number
+          premium_description?: string
+          recommendations?: string[] | null
+          strengths?: string[] | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -95,6 +152,77 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "payments_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      premium_purchases: {
+        Row: {
+          amount: number
+          attempt_id: string | null
+          certificate_generated_at: string | null
+          created_at: string
+          currency: string | null
+          email_sent_at: string | null
+          id: string
+          payment_method: string | null
+          payment_status: string | null
+          pix_copy_paste: string | null
+          pix_expires_at: string | null
+          pix_qr_code: string | null
+          purchase_type: string
+          report_generated_at: string | null
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          attempt_id?: string | null
+          certificate_generated_at?: string | null
+          created_at?: string
+          currency?: string | null
+          email_sent_at?: string | null
+          id?: string
+          payment_method?: string | null
+          payment_status?: string | null
+          pix_copy_paste?: string | null
+          pix_expires_at?: string | null
+          pix_qr_code?: string | null
+          purchase_type: string
+          report_generated_at?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          attempt_id?: string | null
+          certificate_generated_at?: string | null
+          created_at?: string
+          currency?: string | null
+          email_sent_at?: string | null
+          id?: string
+          payment_method?: string | null
+          payment_status?: string | null
+          pix_copy_paste?: string | null
+          pix_expires_at?: string | null
+          pix_qr_code?: string | null
+          purchase_type?: string
+          report_generated_at?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "premium_purchases_attempt_id_fkey"
             columns: ["attempt_id"]
             isOneToOne: false
             referencedRelation: "test_attempts"
@@ -256,10 +384,16 @@ export type Database = {
       }
       test_attempts: {
         Row: {
+          certificate_url: string | null
           completed_at: string | null
           has_certificate: boolean | null
           has_premium_access: boolean | null
           id: string
+          iq_estimated: number | null
+          payment_status: string | null
+          percentile_rank: number | null
+          premium_report_url: string | null
+          purchased_at: string | null
           quiz_id: string
           result_category: string | null
           result_description: string | null
@@ -268,10 +402,16 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          certificate_url?: string | null
           completed_at?: string | null
           has_certificate?: boolean | null
           has_premium_access?: boolean | null
           id?: string
+          iq_estimated?: number | null
+          payment_status?: string | null
+          percentile_rank?: number | null
+          premium_report_url?: string | null
+          purchased_at?: string | null
           quiz_id: string
           result_category?: string | null
           result_description?: string | null
@@ -280,10 +420,16 @@ export type Database = {
           user_id: string
         }
         Update: {
+          certificate_url?: string | null
           completed_at?: string | null
           has_certificate?: boolean | null
           has_premium_access?: boolean | null
           id?: string
+          iq_estimated?: number | null
+          payment_status?: string | null
+          percentile_rank?: number | null
+          premium_report_url?: string | null
+          purchased_at?: string | null
           quiz_id?: string
           result_category?: string | null
           result_description?: string | null
