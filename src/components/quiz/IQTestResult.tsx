@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Award, Lock, ArrowRight, Brain, TrendingUp, Star } from "lucide-react";
+import { Award, Lock, ArrowRight, Brain, TrendingUp, Star, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -10,9 +10,11 @@ interface IQTestResultProps {
   totalQuestions: number;
   resultBand: IQResultBand;
   showPremium: boolean;
+  onUnlockClick?: () => void;
+  isUnlocking?: boolean;
 }
 
-const IQTestResult = ({ score, totalQuestions, resultBand, showPremium }: IQTestResultProps) => {
+const IQTestResult = ({ score, totalQuestions, resultBand, showPremium, onUnlockClick, isUnlocking }: IQTestResultProps) => {
   const percentage = Math.round((score / totalQuestions) * 100);
 
   return (
@@ -69,9 +71,18 @@ const IQTestResult = ({ score, totalQuestions, resultBand, showPremium }: IQTest
                   comparativo com a população.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Button variant="premium" className="flex-1">
-                    <Award className="h-4 w-4" />
-                    Desbloquear por R$ 19,90
+                  <Button 
+                    variant="premium" 
+                    className="flex-1"
+                    onClick={onUnlockClick}
+                    disabled={isUnlocking}
+                  >
+                    {isUnlocking ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Award className="h-4 w-4" />
+                    )}
+                    {isUnlocking ? 'Processando...' : 'Desbloquear por R$ 19,90'}
                   </Button>
                 </div>
               </CardContent>
