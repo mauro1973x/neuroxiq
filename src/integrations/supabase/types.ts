@@ -164,6 +164,13 @@ export type Database = {
             referencedRelation: "test_attempts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "payments_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       premium_purchases: {
@@ -233,6 +240,13 @@ export type Database = {
             columns: ["attempt_id"]
             isOneToOne: false
             referencedRelation: "test_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "premium_purchases_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -499,6 +513,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "user_answers_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts_secure"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "user_answers_question_id_fkey"
             columns: ["question_id"]
             isOneToOne: false
@@ -677,6 +698,13 @@ export type Database = {
             referencedRelation: "test_attempts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "payments_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts_secure"
+            referencedColumns: ["id"]
+          },
         ]
       }
       premium_purchases_secure: {
@@ -731,6 +759,13 @@ export type Database = {
             columns: ["attempt_id"]
             isOneToOne: false
             referencedRelation: "test_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "premium_purchases_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -846,6 +881,72 @@ export type Database = {
         }
         Relationships: []
       }
+      test_attempts_secure: {
+        Row: {
+          completed_at: string | null
+          has_certificate: boolean | null
+          has_premium_access: boolean | null
+          id: string | null
+          iq_estimated: number | null
+          payment_status: string | null
+          percentile_rank: number | null
+          purchased_at: string | null
+          quiz_id: string | null
+          result_category: string | null
+          result_description: string | null
+          started_at: string | null
+          total_score: number | null
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          has_certificate?: boolean | null
+          has_premium_access?: boolean | null
+          id?: string | null
+          iq_estimated?: number | null
+          payment_status?: string | null
+          percentile_rank?: number | null
+          purchased_at?: string | null
+          quiz_id?: string | null
+          result_category?: string | null
+          result_description?: string | null
+          started_at?: string | null
+          total_score?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          has_certificate?: boolean | null
+          has_premium_access?: boolean | null
+          id?: string | null
+          iq_estimated?: number | null
+          payment_status?: string | null
+          percentile_rank?: number | null
+          purchased_at?: string | null
+          quiz_id?: string | null
+          result_category?: string | null
+          result_description?: string | null
+          started_at?: string | null
+          total_score?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_attempts_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_attempts_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes_secure"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       calculate_test_score: {
@@ -874,6 +975,13 @@ export type Database = {
           premium_description: string
           recommendations: string[]
           strengths: string[]
+        }[]
+      }
+      get_premium_urls: {
+        Args: { p_attempt_id: string }
+        Returns: {
+          certificate_url: string
+          premium_report_url: string
         }[]
       }
       has_role: {
