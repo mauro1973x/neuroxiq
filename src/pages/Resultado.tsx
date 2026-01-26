@@ -11,6 +11,7 @@ import PremiumReport from '@/components/quiz/PremiumReport';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { getResultBand, IQResultBand } from '@/data/iqQuestions';
+import { useToast } from '@/hooks/use-toast';
 
 interface AttemptData {
   id: string;
@@ -28,6 +29,7 @@ const Resultado = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
 
   const [attempt, setAttempt] = useState<AttemptData | null>(null);
   const [resultBand, setResultBand] = useState<IQResultBand | null>(null);
@@ -35,6 +37,7 @@ const Resultado = () => {
   const [error, setError] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
+  const [isUnlocking, setIsUnlocking] = useState(false);
 
   const paymentParam = searchParams.get('payment');
   const sessionId = searchParams.get('session_id');
@@ -90,6 +93,37 @@ const Resultado = () => {
       setIsVerifyingPayment(false);
     }
   }, [sessionId, attemptId, fetchAttempt]);
+
+  const handleUnlockClick = useCallback(async () => {
+    if (!attemptId) return;
+    
+    setIsUnlocking(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { 
+          attemptId, 
+          purchaseType: 'premium_report', 
+          paymentMethod: 'card' 
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast({
+        title: 'Erro ao iniciar pagamento',
+        description: 'Tente novamente ou entre em contato com o suporte.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUnlocking(false);
+    }
+  }, [attemptId, toast]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -216,6 +250,8 @@ const Resultado = () => {
               totalQuestions={30}
               resultBand={resultBand}
               showPremium={false}
+              onUnlockClick={handleUnlockClick}
+              isUnlocking={isUnlocking}
             />
 
             {/* Premium Paywall */}
