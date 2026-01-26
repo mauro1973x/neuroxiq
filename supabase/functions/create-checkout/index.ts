@@ -23,9 +23,16 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseClient = createClient(
+  // Use anon client for auth verification
+  const supabaseAuth = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+  );
+
+  // Use service role client for database operations (bypasses RLS)
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
   );
 
   try {
@@ -35,7 +42,7 @@ serve(async (req) => {
     if (!authHeader) throw new Error("No authorization header provided");
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     
     const user = userData.user;
@@ -45,8 +52,8 @@ serve(async (req) => {
     const { attemptId, purchaseType, paymentMethod = 'card' } = await req.json() as CheckoutRequest;
     logStep("Request parsed", { attemptId, purchaseType, paymentMethod });
 
-    // Get the test attempt to verify it exists and belongs to user
-    const { data: attempt, error: attemptError } = await supabaseClient
+    // Get the test attempt to verify it exists and belongs to user (using admin client)
+    const { data: attempt, error: attemptError } = await supabaseAdmin
       .from('test_attempts')
       .select('*')
       .eq('id', attemptId)
@@ -54,6 +61,7 @@ serve(async (req) => {
       .single();
 
     if (attemptError || !attempt) {
+      logStep("Attempt query failed", { error: attemptError?.message, attemptId, userId: user.id });
       throw new Error("Test attempt not found or doesn't belong to user");
     }
     logStep("Test attempt verified", { attemptId, score: attempt.total_score });
@@ -137,8 +145,8 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create(sessionConfig);
     logStep("Checkout session created", { sessionId: session.id });
 
-    // Create purchase record
-    const { error: purchaseError } = await supabaseClient
+    // Create purchase record using admin client
+    const { error: purchaseError } = await supabaseAdmin
       .from('premium_purchases')
       .insert({
         user_id: user.id,
