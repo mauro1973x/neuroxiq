@@ -9,7 +9,7 @@ import { Quiz } from "@/lib/types";
 // Demo quizzes for initial display
 const demoQuizzes: Quiz[] = [{
   id: "1",
-  title: "Teste de QI Profissional",
+  title: "Teste de QI",
   description: "Avalie sua capacidade cognitiva com nosso teste de QI cientificamente validado. Receba um resultado detalhado.",
   test_type: "iq",
   image_url: null,
