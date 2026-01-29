@@ -8,15 +8,17 @@ const logStep = (step: string, details?: unknown) => {
 };
 
 serve(async (req) => {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  // deno-lint-ignore no-explicit-any
+  const supabase: any = createClient(supabaseUrl, supabaseKey);
+
   try {
     logStep("Webhook received");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
     const body = await req.text();
     const signature = req.headers.get("stripe-signature");
@@ -40,7 +42,44 @@ serve(async (req) => {
       logStep("Webhook parsed without signature verification (development mode)");
     }
 
-    logStep("Event received", { type: event.type });
+    logStep("Event received", { type: event.type, eventId: event.id });
+
+    // IDEMPOTENCY CHECK: Check if this event was already processed
+    const { data: existingEvent } = await supabase
+      .from('payment_events')
+      .select('id, processed')
+      .eq('stripe_event_id', event.id)
+      .single();
+
+    if (existingEvent?.processed) {
+      logStep("Event already processed, skipping", { eventId: event.id });
+      return new Response(JSON.stringify({ received: true, skipped: true }), { status: 200 });
+    }
+
+    // Log the event before processing
+    const sessionObj = event.data.object as Stripe.Checkout.Session;
+    const { error: insertError } = await supabase
+      .from('payment_events')
+      .insert({
+        stripe_event_id: event.id,
+        event_type: event.type,
+        checkout_session_id: sessionObj?.id || null,
+        payment_intent_id: sessionObj?.payment_intent as string || null,
+        user_id: sessionObj?.metadata?.user_id || null,
+        attempt_id: sessionObj?.metadata?.attempt_id || null,
+        payload_summary: {
+          type: event.type,
+          created: event.created,
+          livemode: event.livemode
+        },
+        processed: false,
+      });
+
+    if (insertError && !insertError.message?.includes('duplicate')) {
+      logStep("Warning: Failed to log event", { error: insertError.message });
+    }
+
+    let processError: string | null = null;
 
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -51,7 +90,7 @@ serve(async (req) => {
         });
 
         if (session.payment_status === 'paid') {
-          await handleSuccessfulPayment(supabaseUrl, supabaseKey, session);
+          await handleSuccessfulPayment(supabase, session, event.id);
         }
         break;
       }
@@ -60,7 +99,7 @@ serve(async (req) => {
         // For PIX payments that complete asynchronously
         const session = event.data.object as Stripe.Checkout.Session;
         logStep("Async payment succeeded (PIX)", { sessionId: session.id });
-        await handleSuccessfulPayment(supabaseUrl, supabaseKey, session);
+        await handleSuccessfulPayment(supabase, session, event.id);
         break;
       }
 
@@ -68,12 +107,15 @@ serve(async (req) => {
         const session = event.data.object as Stripe.Checkout.Session;
         logStep("Async payment failed", { sessionId: session.id });
         
-        // Update purchase status to rejected
-        const supabase = createClient(supabaseUrl, supabaseKey);
         await supabase
           .from('premium_purchases')
           .update({ payment_status: 'rejected' })
           .eq('stripe_checkout_session_id', session.id);
+
+        await supabase
+          .from('test_attempts')
+          .update({ payment_status: 'failed' })
+          .eq('id', session.metadata?.attempt_id);
         break;
       }
 
@@ -81,8 +123,6 @@ serve(async (req) => {
         const session = event.data.object as Stripe.Checkout.Session;
         logStep("Checkout session expired", { sessionId: session.id });
         
-        // Update purchase status to expired
-        const supabase = createClient(supabaseUrl, supabaseKey);
         await supabase
           .from('premium_purchases')
           .update({ payment_status: 'expired' })
@@ -94,6 +134,17 @@ serve(async (req) => {
         logStep("Unhandled event type", { type: event.type });
     }
 
+    // Mark event as processed
+    await supabase
+      .from('payment_events')
+      .update({ 
+        processed: true, 
+        processed_at: new Date().toISOString(),
+        error: processError
+      })
+      .eq('stripe_event_id', event.id);
+
+    logStep("Event processing completed", { eventId: event.id });
     return new Response(JSON.stringify({ received: true }), { status: 200 });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -102,26 +153,37 @@ serve(async (req) => {
   }
 });
 
+// deno-lint-ignore no-explicit-any
 async function handleSuccessfulPayment(
-  supabaseUrl: string,
-  supabaseKey: string,
-  session: Stripe.Checkout.Session
+  supabase: any,
+  session: Stripe.Checkout.Session,
+  eventId: string
 ) {
-  const supabase = createClient(supabaseUrl, supabaseKey);
-  
   const attemptId = session.metadata?.attempt_id;
   const userId = session.metadata?.user_id;
   const purchaseType = session.metadata?.purchase_type || 'premium_report';
 
-  logStep("Processing successful payment", { attemptId, userId, purchaseType });
+  logStep("Processing successful payment", { attemptId, userId, purchaseType, eventId });
 
   if (!attemptId || !userId) {
     logStep("Missing metadata", { attemptId, userId });
     return;
   }
 
+  // Check if already unlocked (idempotency)
+  const { data: existingAttempt } = await supabase
+    .from('test_attempts')
+    .select('has_premium_access, has_certificate')
+    .eq('id', attemptId)
+    .single();
+
+  if (existingAttempt?.has_premium_access) {
+    logStep("Already unlocked, skipping duplicate processing", { attemptId });
+    return;
+  }
+
   // Update purchase record
-  const { error: purchaseError } = await supabase
+  await supabase
     .from('premium_purchases')
     .update({
       payment_status: 'approved',
@@ -129,14 +191,11 @@ async function handleSuccessfulPayment(
     })
     .eq('stripe_checkout_session_id', session.id);
 
-  if (purchaseError) {
-    logStep("Failed to update purchase", { error: purchaseError.message });
-  }
-
   // Build update data for test attempt
-  const updateFields: { [key: string]: unknown } = {
+  const updateFields: Record<string, unknown> = {
     payment_status: 'approved',
     purchased_at: new Date().toISOString(),
+    premium_unlocked_at: new Date().toISOString(),
   };
 
   if (purchaseType === 'premium_report' || purchaseType === 'bundle') {
@@ -154,6 +213,6 @@ async function handleSuccessfulPayment(
   if (attemptError) {
     logStep("Failed to update attempt", { error: attemptError.message });
   } else {
-    logStep("Access granted successfully");
+    logStep("Access granted successfully via webhook", { attemptId, eventId });
   }
 }

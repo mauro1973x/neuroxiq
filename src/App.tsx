@@ -15,6 +15,8 @@ import TestePersonalidade from "./pages/TestePersonalidade";
 import TesteCarreira from "./pages/TesteCarreira";
 import TestePolitico from "./pages/TestePolitico";
 import Resultado from "./pages/Resultado";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 import Precos from "./pages/Precos";
 import Sobre from "./pages/Sobre";
 import Termos from "./pages/Termos";
@@ -43,6 +45,8 @@ const App = () => (
             <Route path="/teste-carreira" element={<TesteCarreira />} />
             <Route path="/teste-politico" element={<TestePolitico />} />
             <Route path="/resultado/:attemptId" element={<Resultado />} />
+            <Route path="/payment/success" element={<PaymentSuccess />} />
+            <Route path="/payment/cancel" element={<PaymentCancel />} />
             <Route path="/precos" element={<Precos />} />
             <Route path="/sobre" element={<Sobre />} />
             <Route path="/termos" element={<Termos />} />
