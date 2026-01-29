@@ -73,13 +73,12 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
     {
       id: 'bundle',
       name: 'Pacote Completo',
-      price: 'R$ 29,90',
-      originalPrice: 'R$ 39,80',
+      price: 'R$ 19,90',
       description: 'Relatório + Certificado',
       features: [
         'Tudo do Relatório Premium',
         'Tudo do Certificado',
-        'Economia de R$ 9,90',
+        'Melhor custo-benefício',
         'Acesso vitalício',
       ],
       popular: false,
@@ -130,11 +129,6 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
                 <h3 className="font-semibold text-lg">{product.name}</h3>
                 <p className="text-sm text-muted-foreground">{product.description}</p>
                 <div className="mt-2">
-                  {product.originalPrice && (
-                    <span className="text-sm text-muted-foreground line-through mr-2">
-                      {product.originalPrice}
-                    </span>
-                  )}
                   <span className="text-2xl font-bold text-primary">{product.price}</span>
                 </div>
               </div>
