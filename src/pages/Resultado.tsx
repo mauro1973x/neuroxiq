@@ -92,7 +92,7 @@ const getTestConfig = (testType: TestType) => {
         totalQuestions: 30,
         maxScore: 30,
         scoreLabel: 'Pontuação QE',
-        premiumPrice: 49.90
+        premiumPrice: 19.90
       };
     case 'personality':
       return {
@@ -103,7 +103,7 @@ const getTestConfig = (testType: TestType) => {
         totalQuestions: 40,
         maxScore: 120,
         scoreLabel: 'Pontuação Total',
-        premiumPrice: 39.90
+        premiumPrice: 19.90
       };
     case 'career':
       return {
@@ -114,7 +114,7 @@ const getTestConfig = (testType: TestType) => {
         totalQuestions: 42,
         maxScore: 126,
         scoreLabel: 'Pontuação Total',
-        premiumPrice: 39.90
+        premiumPrice: 19.90
       };
     case 'political':
       return {
@@ -125,7 +125,7 @@ const getTestConfig = (testType: TestType) => {
         totalQuestions: 40,
         maxScore: 100,
         scoreLabel: 'Posição no Espectro',
-        premiumPrice: 29.90
+        premiumPrice: 19.90
       };
     default:
       return {
@@ -490,7 +490,7 @@ const Resultado = () => {
                         </>
                       ) : (
                         <>
-                          Desbloquear Relatório com Sugestões de Carreira - R$ 39,90
+                          Desbloquear Relatório com Sugestões de Carreira - R$ 19,90
                         </>
                       )}
                     </Button>
@@ -615,7 +615,7 @@ const Resultado = () => {
                         </>
                       ) : (
                         <>
-                          Desbloquear Relatório de Personalidade Completo - R$ 39,90
+                          Desbloquear Relatório de Personalidade Completo - R$ 19,90
                         </>
                       )}
                     </Button>
@@ -762,7 +762,7 @@ const Resultado = () => {
                         </>
                       ) : (
                         <>
-                          Desbloquear Relatório Emocional Completo - R$ 49,90
+                          Desbloquear Relatório Emocional Completo - R$ 19,90
                         </>
                       )}
                     </Button>
@@ -877,7 +877,7 @@ const Resultado = () => {
                         </>
                       ) : (
                         <>
-                          Desbloquear Relatório Político Completo - R$ 29,90
+                          Desbloquear Relatório Político Completo - R$ 19,90
                         </>
                       )}
                     </Button>
