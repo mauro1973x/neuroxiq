@@ -173,6 +173,63 @@ export type Database = {
           },
         ]
       }
+      political_result_bands: {
+        Row: {
+          authority_axis: string
+          band_order: number
+          challenges: string[] | null
+          characteristics: string[]
+          compatible_careers: string[] | null
+          created_at: string
+          economic_axis: string
+          famous_figures: string[] | null
+          free_description: string
+          id: string
+          max_score: number
+          min_score: number
+          name: string
+          premium_description: string
+          social_axis: string
+          strengths: string[] | null
+        }
+        Insert: {
+          authority_axis: string
+          band_order: number
+          challenges?: string[] | null
+          characteristics: string[]
+          compatible_careers?: string[] | null
+          created_at?: string
+          economic_axis: string
+          famous_figures?: string[] | null
+          free_description: string
+          id?: string
+          max_score: number
+          min_score: number
+          name: string
+          premium_description: string
+          social_axis: string
+          strengths?: string[] | null
+        }
+        Update: {
+          authority_axis?: string
+          band_order?: number
+          challenges?: string[] | null
+          characteristics?: string[]
+          compatible_careers?: string[] | null
+          created_at?: string
+          economic_axis?: string
+          famous_figures?: string[] | null
+          free_description?: string
+          id?: string
+          max_score?: number
+          min_score?: number
+          name?: string
+          premium_description?: string
+          social_axis?: string
+          strengths?: string[] | null
+        }
+        Relationships: []
+      }
       premium_purchases: {
         Row: {
           amount: number
