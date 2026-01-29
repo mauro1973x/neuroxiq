@@ -73,12 +73,12 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
     {
       id: 'bundle',
       name: 'Pacote Completo',
-      price: 'R$ 19,90',
+      price: 'R$ 29,90',
       description: 'Relatório + Certificado',
       features: [
         'Tudo do Relatório Premium',
         'Tudo do Certificado',
-        'Melhor custo-benefício',
+        'Economia de R$ 9,90',
         'Acesso vitalício',
       ],
       popular: false,
