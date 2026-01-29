@@ -13,6 +13,7 @@ import TesteQI from "./pages/TesteQI";
 import TesteEmocional from "./pages/TesteEmocional";
 import TestePersonalidade from "./pages/TestePersonalidade";
 import TesteCarreira from "./pages/TesteCarreira";
+import TestePolitico from "./pages/TestePolitico";
 import Resultado from "./pages/Resultado";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/teste-emocional" element={<TesteEmocional />} />
             <Route path="/teste-personalidade" element={<TestePersonalidade />} />
             <Route path="/teste-carreira" element={<TesteCarreira />} />
+            <Route path="/teste-politico" element={<TestePolitico />} />
             <Route path="/resultado/:attemptId" element={<Resultado />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

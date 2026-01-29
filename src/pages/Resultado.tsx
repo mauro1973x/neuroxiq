@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { Loader2, AlertCircle, CheckCircle, Clock, XCircle, Brain, Heart, User, TrendingUp, Briefcase } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle, Clock, XCircle, Brain, Heart, User, TrendingUp, Briefcase, Scale } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import PremiumReport from '@/components/quiz/PremiumReport';
 import PremiumCareerReport from '@/components/quiz/PremiumCareerReport';
 import PremiumPersonalityReport from '@/components/quiz/PremiumPersonalityReport';
 import PremiumEmotionalReport from '@/components/quiz/PremiumEmotionalReport';
+import PremiumPoliticalReport from '@/components/quiz/PremiumPoliticalReport';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { getResultBand, IQResultBand } from '@/data/iqQuestions';
@@ -30,6 +31,11 @@ import {
   CareerCategory,
   categoryLabels as careerCategoryLabels
 } from '@/data/careerQuestions';
+import { 
+  PoliticalResultBand,
+  calculateCategoryScores as calculatePoliticalCategoryScores,
+  categoryLabels as politicalCategoryLabels
+} from '@/data/politicalQuestions';
 import { useToast } from '@/hooks/use-toast';
 
 // Quiz IDs
@@ -37,8 +43,9 @@ const IQ_QUIZ_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const EMOTIONAL_QUIZ_ID = 'b2c3d4e5-f6a7-8901-bcde-f23456789012';
 const PERSONALITY_QUIZ_ID = 'c3d4e5f6-a7b8-9012-cdef-345678901234';
 const CAREER_QUIZ_ID = 'd4e5f6a7-b8c9-0123-defa-456789012345';
+const POLITICAL_QUIZ_ID = 'e5f6a7b8-c9d0-1234-efab-567890123456';
 
-type TestType = 'iq' | 'emotional' | 'personality' | 'career' | 'unknown';
+type TestType = 'iq' | 'emotional' | 'personality' | 'career' | 'political' | 'unknown';
 
 interface AttemptData {
   id: string;
@@ -58,6 +65,7 @@ const getTestType = (quizId: string): TestType => {
     case EMOTIONAL_QUIZ_ID: return 'emotional';
     case PERSONALITY_QUIZ_ID: return 'personality';
     case CAREER_QUIZ_ID: return 'career';
+    case POLITICAL_QUIZ_ID: return 'political';
     default: return 'unknown';
   }
 };
@@ -108,6 +116,17 @@ const getTestConfig = (testType: TestType) => {
         scoreLabel: 'Pontuação Total',
         premiumPrice: 39.90
       };
+    case 'political':
+      return {
+        title: 'Resultado do Teste Político-Ideológico',
+        subtitle: 'Análise do seu posicionamento no espectro político',
+        icon: Scale,
+        color: 'from-red-500 to-orange-600',
+        totalQuestions: 40,
+        maxScore: 100,
+        scoreLabel: 'Posição no Espectro',
+        premiumPrice: 29.90
+      };
     default:
       return {
         title: 'Resultado do Teste',
@@ -135,6 +154,7 @@ const Resultado = () => {
   const [emotionalResultBand, setEmotionalResultBand] = useState<EmotionalResultBand | null>(null);
   const [personalityResultBand, setPersonalityResultBand] = useState<PersonalityResultBand | null>(null);
   const [careerResultBand, setCareerResultBand] = useState<CareerResultBand | null>(null);
+  const [politicalResultBand, setPoliticalResultBand] = useState<PoliticalResultBand | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
@@ -176,6 +196,18 @@ const Resultado = () => {
             break;
           case 'career':
             setCareerResultBand(getCareerResultBand(data.total_score));
+            break;
+          case 'political':
+            // Fetch political result band from database
+            const { data: politicalBand } = await supabase
+              .from('political_result_bands')
+              .select('*')
+              .gte('max_score', data.total_score)
+              .lte('min_score', data.total_score)
+              .single();
+            if (politicalBand) {
+              setPoliticalResultBand(politicalBand as PoliticalResultBand);
+            }
             break;
         }
       }
@@ -731,6 +763,121 @@ const Resultado = () => {
                       ) : (
                         <>
                           Desbloquear Relatório Emocional Completo - R$ 49,90
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <PremiumPaywall
+                attemptId={attemptId!}
+                onPaymentSuccess={() => fetchAttempt()}
+              />
+            </div>
+          )}
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Render Political Test Result
+  if (testType === 'political' && politicalResultBand) {
+    // Generate mock answers for category calculation (since we don't store individual answers)
+    const mockAnswers: (number | null)[] = new Array(40).fill(1);
+    
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1 container py-12">
+          {renderPaymentAlerts()}
+
+          {hasPremiumAccess ? (
+            <PremiumPoliticalReport
+              resultBand={politicalResultBand}
+              totalScore={score}
+              answers={mockAnswers}
+              attemptId={attemptId!}
+              userName={user?.user_metadata?.full_name || 'Participante'}
+            />
+          ) : (
+            <div className="space-y-8">
+              {/* Free Political Result */}
+              <Card className="glass-card overflow-hidden">
+                <div className="h-2 bg-gradient-to-r from-red-500 to-orange-600" />
+                <CardHeader className="text-center pb-4">
+                  <div className="flex justify-center mb-4">
+                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center">
+                      <Scale className="h-8 w-8 text-white" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-2xl md:text-3xl font-display">Resultado do Teste Político-Ideológico</CardTitle>
+                  <CardDescription className="text-lg">Análise do seu posicionamento no espectro político</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="text-center p-6 rounded-xl bg-muted/30">
+                    <div className="text-sm text-muted-foreground mb-2">Posição no Espectro</div>
+                    <div className="text-5xl font-bold bg-gradient-to-r from-red-500 to-orange-600 bg-clip-text text-transparent">
+                      {score}
+                      <span className="text-2xl text-muted-foreground">/100</span>
+                    </div>
+                    <div className="mt-4 relative">
+                      <div className="h-4 bg-gradient-to-r from-blue-600 via-gray-400 to-red-600 rounded-full" />
+                      <div 
+                        className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-gray-800 rounded-full"
+                        style={{ left: `calc(${score}% - 8px)` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                      <span>Progressista</span>
+                      <span>Centro</span>
+                      <span>Conservador</span>
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <Badge className="text-lg px-4 py-2 bg-gradient-to-r from-red-500 to-orange-600 text-white border-0">
+                      {attempt.result_category}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center p-3 rounded-lg bg-muted/20 border">
+                      <div className="text-xs text-muted-foreground mb-1">Econômico</div>
+                      <div className="text-sm font-medium">{politicalResultBand.economic_axis}</div>
+                    </div>
+                    <div className="text-center p-3 rounded-lg bg-muted/20 border">
+                      <div className="text-xs text-muted-foreground mb-1">Social</div>
+                      <div className="text-sm font-medium">{politicalResultBand.social_axis}</div>
+                    </div>
+                    <div className="text-center p-3 rounded-lg bg-muted/20 border">
+                      <div className="text-xs text-muted-foreground mb-1">Autoridade</div>
+                      <div className="text-sm font-medium">{politicalResultBand.authority_axis}</div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg bg-muted/20 border">
+                    <p className="text-center text-muted-foreground leading-relaxed">
+                      {attempt.result_description || politicalResultBand.free_description}
+                    </p>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <Button
+                      onClick={handleUnlockClick}
+                      disabled={isUnlocking}
+                      className="w-full bg-gradient-to-r from-red-500 to-orange-600 hover:opacity-90"
+                      size="lg"
+                    >
+                      {isUnlocking ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Processando...
+                        </>
+                      ) : (
+                        <>
+                          Desbloquear Relatório Político Completo - R$ 29,90
                         </>
                       )}
                     </Button>
