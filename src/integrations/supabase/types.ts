@@ -116,6 +116,66 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_events: {
+        Row: {
+          attempt_id: string | null
+          checkout_session_id: string | null
+          created_at: string
+          error: string | null
+          event_type: string
+          id: string
+          payload_summary: Json | null
+          payment_intent_id: string | null
+          processed: boolean
+          processed_at: string | null
+          stripe_event_id: string
+          user_id: string | null
+        }
+        Insert: {
+          attempt_id?: string | null
+          checkout_session_id?: string | null
+          created_at?: string
+          error?: string | null
+          event_type: string
+          id?: string
+          payload_summary?: Json | null
+          payment_intent_id?: string | null
+          processed?: boolean
+          processed_at?: string | null
+          stripe_event_id: string
+          user_id?: string | null
+        }
+        Update: {
+          attempt_id?: string | null
+          checkout_session_id?: string | null
+          created_at?: string
+          error?: string | null
+          event_type?: string
+          id?: string
+          payload_summary?: Json | null
+          payment_intent_id?: string | null
+          processed?: boolean
+          processed_at?: string | null
+          stripe_event_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_events_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts_secure"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -478,6 +538,7 @@ export type Database = {
           payment_status: string | null
           percentile_rank: number | null
           premium_report_url: string | null
+          premium_unlocked_at: string | null
           purchased_at: string | null
           quiz_id: string
           result_category: string | null
@@ -496,6 +557,7 @@ export type Database = {
           payment_status?: string | null
           percentile_rank?: number | null
           premium_report_url?: string | null
+          premium_unlocked_at?: string | null
           purchased_at?: string | null
           quiz_id: string
           result_category?: string | null
@@ -514,6 +576,7 @@ export type Database = {
           payment_status?: string | null
           percentile_rank?: number | null
           premium_report_url?: string | null
+          premium_unlocked_at?: string | null
           purchased_at?: string | null
           quiz_id?: string
           result_category?: string | null
