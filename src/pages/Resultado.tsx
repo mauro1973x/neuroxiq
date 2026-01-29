@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { Loader2, AlertCircle, CheckCircle, Clock, XCircle, Brain, Heart, User, TrendingUp } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle, Clock, XCircle, Brain, Heart, User, TrendingUp, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,12 +11,18 @@ import Footer from '@/components/layout/Footer';
 import IQTestResult from '@/components/quiz/IQTestResult';
 import PremiumPaywall from '@/components/quiz/PremiumPaywall';
 import PremiumReport from '@/components/quiz/PremiumReport';
+import PremiumCareerReport from '@/components/quiz/PremiumCareerReport';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { getResultBand, IQResultBand } from '@/data/iqQuestions';
 import { getEmotionalResultBand, EmotionalResultBand } from '@/data/emotionalQuestions';
 import { getPersonalityResultBand, PersonalityResultBand } from '@/data/personalityQuestions';
-import { getCareerResultBand, CareerResultBand } from '@/data/careerQuestions';
+import { 
+  getCareerResultBand, 
+  CareerResultBand, 
+  CareerCategory,
+  categoryLabels
+} from '@/data/careerQuestions';
 import { useToast } from '@/hooks/use-toast';
 
 // Quiz IDs
@@ -306,6 +312,153 @@ const Resultado = () => {
                 onUnlockClick={handleUnlockClick}
                 isUnlocking={isUnlocking}
               />
+              <PremiumPaywall
+                attemptId={attemptId!}
+                onPaymentSuccess={() => fetchAttempt()}
+              />
+            </div>
+          )}
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Render Career Test Result with premium report
+  if (testType === 'career' && careerResultBand) {
+    // Parse career data from result_description
+    const parseCareerData = () => {
+      // Default category scores and top categories
+      const defaultScores: Record<CareerCategory, number> = {
+        realistic: 0, investigative: 0, artistic: 0,
+        social: 0, enterprising: 0, conventional: 0
+      };
+      const defaultTop: CareerCategory[] = ['realistic', 'investigative', 'artistic'];
+      
+      // Try to extract Holland code from description
+      const hollandMatch = attempt.result_description?.match(/Perfil dominante: ([A-Za-z\s+]+)/);
+      let hollandCode = 'RIA';
+      let topCategories = defaultTop;
+      
+      if (hollandMatch) {
+        const profiles = hollandMatch[1].split(' + ').map(p => p.trim().toLowerCase());
+        const categoryMap: Record<string, CareerCategory> = {
+          'realista': 'realistic',
+          'investigativo': 'investigative',
+          'artístico': 'artistic',
+          'social': 'social',
+          'empreendedor': 'enterprising',
+          'convencional': 'conventional'
+        };
+        
+        topCategories = profiles
+          .map(p => categoryMap[p])
+          .filter((c): c is CareerCategory => c !== undefined)
+          .slice(0, 3);
+        
+        if (topCategories.length < 3) {
+          topCategories = defaultTop;
+        }
+        
+        hollandCode = topCategories.map(c => c[0].toUpperCase()).join('');
+      }
+      
+      // Estimate category scores based on total score distribution
+      const totalScore = score;
+      const baseScore = Math.floor(totalScore / 6);
+      const remainder = totalScore % 6;
+      
+      const categoryScores = { ...defaultScores };
+      topCategories.forEach((cat, idx) => {
+        categoryScores[cat] = baseScore + (idx < remainder ? 3 : 2);
+      });
+      
+      return { categoryScores, topCategories, hollandCode };
+    };
+
+    const careerData = parseCareerData();
+
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1 container py-12">
+          {renderPaymentAlerts()}
+
+          {hasPremiumAccess ? (
+            <PremiumCareerReport
+              totalScore={score}
+              categoryScores={careerData.categoryScores}
+              topCategories={careerData.topCategories}
+              hollandCode={careerData.hollandCode}
+              resultBand={careerResultBand}
+            />
+          ) : (
+            <div className="space-y-8">
+              {/* Free Career Result */}
+              <Card className="glass-card overflow-hidden">
+                <div className="h-2 bg-gradient-to-r from-amber-500 to-orange-600" />
+                <CardHeader className="text-center pb-4">
+                  <div className="flex justify-center mb-4">
+                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                      <Briefcase className="h-8 w-8 text-white" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-2xl md:text-3xl font-display">Resultado da Orientação de Carreira</CardTitle>
+                  <CardDescription className="text-lg">Análise do seu perfil vocacional (RIASEC)</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="text-center p-6 rounded-xl bg-muted/30">
+                    <div className="text-sm text-muted-foreground mb-2">Pontuação Total</div>
+                    <div className="text-5xl font-bold bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+                      {score}
+                      <span className="text-2xl text-muted-foreground">/126</span>
+                    </div>
+                    <Progress value={percentage} className="mt-4 h-3" />
+                    <div className="text-sm text-muted-foreground mt-2">{percentage}% de aproveitamento</div>
+                  </div>
+
+                  <div className="text-center">
+                    <Badge className="text-lg px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0">
+                      {attempt.result_category}
+                    </Badge>
+                  </div>
+
+                  <div className="text-center p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                    <div className="text-sm text-muted-foreground mb-1">Seu Código Holland</div>
+                    <div className="text-2xl font-bold font-mono text-amber-600">{careerData.hollandCode}</div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {careerData.topCategories.map(c => categoryLabels[c]).join(' + ')}
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg bg-muted/20 border">
+                    <p className="text-center text-muted-foreground leading-relaxed">
+                      {attempt.result_description}
+                    </p>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <Button
+                      onClick={handleUnlockClick}
+                      disabled={isUnlocking}
+                      className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90"
+                      size="lg"
+                    >
+                      {isUnlocking ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Processando...
+                        </>
+                      ) : (
+                        <>
+                          Desbloquear Relatório com Sugestões de Carreira - R$ 39,90
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
               <PremiumPaywall
                 attemptId={attemptId!}
                 onPaymentSuccess={() => fetchAttempt()}
