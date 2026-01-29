@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { Loader2, AlertCircle, CheckCircle, Clock, XCircle, Brain, Heart, User, TrendingUp, Briefcase, Scale } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle, Clock, XCircle, Brain, Heart, User, TrendingUp, Briefcase, Scale, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,8 +15,10 @@ import PremiumCareerReport from '@/components/quiz/PremiumCareerReport';
 import PremiumPersonalityReport from '@/components/quiz/PremiumPersonalityReport';
 import PremiumEmotionalReport from '@/components/quiz/PremiumEmotionalReport';
 import PremiumPoliticalReport from '@/components/quiz/PremiumPoliticalReport';
+import UnlockPremiumButton from '@/components/quiz/UnlockPremiumButton';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { usePaymentPolling } from '@/hooks/usePaymentPolling';
 import { getResultBand, IQResultBand } from '@/data/iqQuestions';
 import { getEmotionalResultBand, EmotionalResultBand } from '@/data/emotionalQuestions';
 import { 
@@ -157,15 +159,29 @@ const Resultado = () => {
   const [politicalResultBand, setPoliticalResultBand] = useState<PoliticalResultBand | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
-  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
-  const [isUnlocking, setIsUnlocking] = useState(false);
 
   const paymentParam = searchParams.get('payment');
   const sessionId = searchParams.get('session_id');
 
+  // Use the payment polling hook
+  const {
+    isPolling,
+    pollingAttempts,
+    paymentConfirmed,
+    paymentStatus,
+    error: pollingError,
+    startPolling
+  } = usePaymentPolling({
+    attemptId,
+    sessionId,
+    initialPaymentStatus: attempt?.payment_status || null,
+    enabled: !!(paymentParam === 'success' || sessionId || attempt?.payment_status === 'pending')
+  });
+
   const fetchAttempt = useCallback(async () => {
     if (!attemptId || !user) return;
+
+    console.log('[RESULTADO] Fetching attempt:', attemptId, 'for user:', user.id);
 
     try {
       const { data, error: fetchError } = await supabase
@@ -178,10 +194,18 @@ const Resultado = () => {
       if (fetchError) throw fetchError;
       if (!data) throw new Error('Resultado não encontrado');
 
+      console.log('[RESULTADO] Attempt data:', {
+        id: data.id,
+        score: data.total_score,
+        hasPremium: data.has_premium_access,
+        paymentStatus: data.payment_status
+      });
+
       setAttempt(data as AttemptData);
 
       const detectedType = getTestType(data.quiz_id);
       setTestType(detectedType);
+      console.log('[RESULTADO] Test type detected:', detectedType);
 
       if (data.total_score !== null) {
         switch (detectedType) {
@@ -198,7 +222,6 @@ const Resultado = () => {
             setCareerResultBand(getCareerResultBand(data.total_score));
             break;
           case 'political':
-            // Fetch political result band from database
             const { data: politicalBand } = await supabase
               .from('political_result_bands')
               .select('*')
@@ -212,66 +235,25 @@ const Resultado = () => {
         }
       }
     } catch (err) {
-      console.error('Error fetching attempt:', err);
+      console.error('[RESULTADO] Error fetching attempt:', err);
       setError('Não foi possível carregar o resultado.');
     } finally {
       setIsLoading(false);
     }
   }, [attemptId, user]);
 
-  const verifyPayment = useCallback(async () => {
-    if (!sessionId || !attemptId) return;
-
-    setIsVerifyingPayment(true);
-    try {
-      const { data, error: verifyError } = await supabase.functions.invoke('verify-payment', {
-        body: { sessionId, attemptId }
-      });
-
-      if (verifyError) throw verifyError;
-
-      setPaymentStatus(data?.status || 'unknown');
-
-      if (data?.success) {
-        await fetchAttempt();
-      }
-    } catch (err) {
-      console.error('Error verifying payment:', err);
-    } finally {
-      setIsVerifyingPayment(false);
-    }
-  }, [sessionId, attemptId, fetchAttempt]);
-
-  const handleUnlockClick = useCallback(async () => {
-    if (!attemptId) return;
-    
-    setIsUnlocking(true);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { 
-          attemptId, 
-          purchaseType: 'premium_report', 
-          paymentMethod: 'card' 
-        }
-      });
-
-      if (error) throw error;
-
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
-    } catch (error) {
-      console.error('Checkout error:', error);
+  // Refetch when payment is confirmed via polling
+  useEffect(() => {
+    if (paymentConfirmed) {
+      console.log('[RESULTADO] Payment confirmed via polling, refetching attempt data');
       toast({
-        title: 'Erro ao iniciar pagamento',
-        description: 'Tente novamente ou entre em contato com o suporte.',
-        variant: 'destructive',
+        title: 'Pagamento Confirmado!',
+        description: 'Seu relatório premium foi liberado com sucesso.',
+        variant: 'default',
       });
-    } finally {
-      setIsUnlocking(false);
+      fetchAttempt();
     }
-  }, [attemptId, toast]);
+  }, [paymentConfirmed, fetchAttempt, toast]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -284,11 +266,76 @@ const Resultado = () => {
     }
   }, [user, authLoading, navigate, fetchAttempt]);
 
-  useEffect(() => {
-    if (paymentParam === 'success' && sessionId) {
-      verifyPayment();
-    }
-  }, [paymentParam, sessionId, verifyPayment]);
+  // Render payment status alerts
+  const renderPaymentAlerts = () => {
+    return (
+      <>
+        {isPolling && (
+          <Alert className="mb-6 max-w-2xl mx-auto border-primary/50 bg-primary/5">
+            <RefreshCw className="h-4 w-4 animate-spin text-primary" />
+            <AlertTitle className="text-primary">Confirmando pagamento...</AlertTitle>
+            <AlertDescription>
+              Aguarde enquanto verificamos seu pagamento. Tentativa {pollingAttempts}/25
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {paymentConfirmed && (
+          <Alert className="mb-6 max-w-2xl mx-auto border-success bg-success/10">
+            <CheckCircle className="h-4 w-4 text-success" />
+            <AlertTitle className="text-success">Pagamento Confirmado!</AlertTitle>
+            <AlertDescription>
+              Seu relatório premium foi liberado com sucesso.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {pollingError && (
+          <Alert className="mb-6 max-w-2xl mx-auto border-warning bg-warning/10">
+            <Clock className="h-4 w-4 text-warning" />
+            <AlertTitle className="text-warning">Aguardando Confirmação</AlertTitle>
+            <AlertDescription>
+              {pollingError}
+              <Button
+                variant="link"
+                className="p-0 h-auto ml-2"
+                onClick={() => window.location.reload()}
+              >
+                Atualizar página
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {paymentStatus === 'pending' && !isPolling && !paymentConfirmed && (
+          <Alert className="mb-6 max-w-2xl mx-auto border-warning bg-warning/10">
+            <Clock className="h-4 w-4 text-warning" />
+            <AlertTitle className="text-warning">Pagamento Pendente</AlertTitle>
+            <AlertDescription>
+              Aguardando confirmação do pagamento. Se você pagou via PIX, pode levar alguns minutos.
+              <Button
+                variant="link"
+                className="p-0 h-auto ml-2"
+                onClick={startPolling}
+              >
+                Verificar novamente
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {paymentParam === 'cancelled' && (
+          <Alert className="mb-6 max-w-2xl mx-auto" variant="destructive">
+            <XCircle className="h-4 w-4" />
+            <AlertTitle>Pagamento Cancelado</AlertTitle>
+            <AlertDescription>
+              O pagamento foi cancelado. Você pode tentar novamente abaixo.
+            </AlertDescription>
+          </Alert>
+        )}
+      </>
+    );
+  };
 
   if (authLoading || isLoading) {
     return (
@@ -321,18 +368,17 @@ const Resultado = () => {
   }
 
   const score = attempt.total_score || 0;
-  const hasPremiumAccess = attempt.has_premium_access || false;
+  const hasPremiumAccess = attempt.has_premium_access || paymentConfirmed;
   const config = getTestConfig(testType);
   const Icon = config.icon;
   const percentage = Math.round((score / config.maxScore) * 100);
 
-  // Render IQ Test Result (uses existing components)
+  // Render IQ Test Result
   if (testType === 'iq' && iqResultBand) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
         <main className="flex-1 container py-12">
-          {/* Payment Status Alerts */}
           {renderPaymentAlerts()}
 
           {hasPremiumAccess ? (
@@ -348,9 +394,16 @@ const Resultado = () => {
                 totalQuestions={30}
                 resultBand={iqResultBand}
                 showPremium={false}
-                onUnlockClick={handleUnlockClick}
-                isUnlocking={isUnlocking}
               />
+              
+              <div className="max-w-2xl mx-auto">
+                <UnlockPremiumButton
+                  attemptId={attemptId!}
+                  testType="iq"
+                  onPaymentInitiated={startPolling}
+                />
+              </div>
+
               <PremiumPaywall
                 attemptId={attemptId!}
                 onPaymentSuccess={() => fetchAttempt()}
@@ -363,18 +416,15 @@ const Resultado = () => {
     );
   }
 
-  // Render Career Test Result with premium report
+  // Render Career Test Result
   if (testType === 'career' && careerResultBand) {
-    // Parse career data from result_description
     const parseCareerData = () => {
-      // Default category scores and top categories
       const defaultScores: Record<CareerCategory, number> = {
         realistic: 0, investigative: 0, artistic: 0,
         social: 0, enterprising: 0, conventional: 0
       };
       const defaultTop: CareerCategory[] = ['realistic', 'investigative', 'artistic'];
       
-      // Try to extract Holland code from description
       const hollandMatch = attempt.result_description?.match(/Perfil dominante: ([A-Za-z\s+]+)/);
       let hollandCode = 'RIA';
       let topCategories = defaultTop;
@@ -402,7 +452,6 @@ const Resultado = () => {
         hollandCode = topCategories.map(c => c[0].toUpperCase()).join('');
       }
       
-      // Estimate category scores based on total score distribution
       const totalScore = score;
       const baseScore = Math.floor(totalScore / 6);
       const remainder = totalScore % 6;
@@ -433,7 +482,6 @@ const Resultado = () => {
             />
           ) : (
             <div className="space-y-8">
-              {/* Free Career Result */}
               <Card className="glass-card overflow-hidden">
                 <div className="h-2 bg-gradient-to-r from-amber-500 to-orange-600" />
                 <CardHeader className="text-center pb-4">
@@ -477,23 +525,11 @@ const Resultado = () => {
                   </div>
 
                   <div className="pt-4 border-t">
-                    <Button
-                      onClick={handleUnlockClick}
-                      disabled={isUnlocking}
-                      className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90"
-                      size="lg"
-                    >
-                      {isUnlocking ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          Processando...
-                        </>
-                      ) : (
-                        <>
-                          Desbloquear Relatório com Sugestões de Carreira - R$ 19,90
-                        </>
-                      )}
-                    </Button>
+                    <UnlockPremiumButton
+                      attemptId={attemptId!}
+                      testType="career"
+                      onPaymentInitiated={startPolling}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -510,29 +546,25 @@ const Resultado = () => {
     );
   }
 
-  // Render Personality Test Result with premium report
+  // Render Personality Test Result
   if (testType === 'personality' && personalityResultBand) {
-    // Parse personality data from result_description
     const parsePersonalityData = () => {
       const defaultScores: Record<PersonalityCategory, number> = {
         openness: 50, conscientiousness: 50, extraversion: 50,
         agreeableness: 50, neuroticism: 50
       };
       
-      // Estimate category scores based on total score
       const totalScore = score;
       const avgPerCategory = Math.round((totalScore / 120) * 100);
       
       const categoryScores = { ...defaultScores };
       const categories: PersonalityCategory[] = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'];
       
-      // Distribute scores with some variation
       categories.forEach((cat, idx) => {
         const variation = ((idx % 2 === 0) ? 5 : -5);
         categoryScores[cat] = Math.min(100, Math.max(0, avgPerCategory + variation));
       });
       
-      // Sort by score to get dominant traits
       const sortedCategories = [...categories].sort((a, b) => categoryScores[b] - categoryScores[a]);
       const dominantTraits = sortedCategories.slice(0, 3);
       
@@ -556,7 +588,6 @@ const Resultado = () => {
             />
           ) : (
             <div className="space-y-8">
-              {/* Free Personality Result */}
               <Card className="glass-card overflow-hidden">
                 <div className="h-2 bg-gradient-to-r from-violet-500 to-purple-600" />
                 <CardHeader className="text-center pb-4">
@@ -602,23 +633,11 @@ const Resultado = () => {
                   </div>
 
                   <div className="pt-4 border-t">
-                    <Button
-                      onClick={handleUnlockClick}
-                      disabled={isUnlocking}
-                      className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90"
-                      size="lg"
-                    >
-                      {isUnlocking ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          Processando...
-                        </>
-                      ) : (
-                        <>
-                          Desbloquear Relatório de Personalidade Completo - R$ 19,90
-                        </>
-                      )}
-                    </Button>
+                    <UnlockPremiumButton
+                      attemptId={attemptId!}
+                      testType="personality"
+                      onPaymentInitiated={startPolling}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -635,9 +654,8 @@ const Resultado = () => {
     );
   }
 
-  // Render Emotional Test Result with premium report
+  // Render Emotional Test Result
   if (testType === 'emotional' && emotionalResultBand) {
-    // Parse emotional data
     const parseEmotionalData = () => {
       type EmotionalCategory = 'self-awareness' | 'self-regulation' | 'motivation' | 'empathy' | 'social-skills';
       
@@ -646,7 +664,6 @@ const Resultado = () => {
         'empathy': 3, 'social-skills': 3
       };
       
-      // Distribute the score across categories
       const avgPerCategory = Math.round(score / 5);
       const categories: EmotionalCategory[] = ['self-awareness', 'self-regulation', 'motivation', 'empathy', 'social-skills'];
       
@@ -656,11 +673,9 @@ const Resultado = () => {
         categoryScores[cat] = Math.min(6, avgPerCategory + variation);
       });
       
-      // Sort by score to get dominant competencies
       const sortedCategories = [...categories].sort((a, b) => categoryScores[b] - categoryScores[a]);
       const dominantCompetencies = sortedCategories.slice(0, 3);
       
-      // Estimate EQ based on score (scale 60-140)
       const estimatedEQ = Math.round(60 + (score / 30) * 80);
       
       return { categoryScores, dominantCompetencies, estimatedEQ };
@@ -691,7 +706,6 @@ const Resultado = () => {
             />
           ) : (
             <div className="space-y-8">
-              {/* Free Emotional Result */}
               <Card className="glass-card overflow-hidden">
                 <div className="h-2 bg-gradient-to-r from-rose-500 to-red-600" />
                 <CardHeader className="text-center pb-4">
@@ -749,23 +763,11 @@ const Resultado = () => {
                   </div>
 
                   <div className="pt-4 border-t">
-                    <Button
-                      onClick={handleUnlockClick}
-                      disabled={isUnlocking}
-                      className="w-full bg-gradient-to-r from-rose-500 to-red-600 hover:opacity-90"
-                      size="lg"
-                    >
-                      {isUnlocking ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          Processando...
-                        </>
-                      ) : (
-                        <>
-                          Desbloquear Relatório Emocional Completo - R$ 19,90
-                        </>
-                      )}
-                    </Button>
+                    <UnlockPremiumButton
+                      attemptId={attemptId!}
+                      testType="emotional"
+                      onPaymentInitiated={startPolling}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -784,7 +786,6 @@ const Resultado = () => {
 
   // Render Political Test Result
   if (testType === 'political' && politicalResultBand) {
-    // Generate mock answers for category calculation (since we don't store individual answers)
     const mockAnswers: (number | null)[] = new Array(40).fill(1);
     
     return (
@@ -803,7 +804,6 @@ const Resultado = () => {
             />
           ) : (
             <div className="space-y-8">
-              {/* Free Political Result */}
               <Card className="glass-card overflow-hidden">
                 <div className="h-2 bg-gradient-to-r from-red-500 to-orange-600" />
                 <CardHeader className="text-center pb-4">
@@ -864,23 +864,11 @@ const Resultado = () => {
                   </div>
 
                   <div className="pt-4 border-t">
-                    <Button
-                      onClick={handleUnlockClick}
-                      disabled={isUnlocking}
-                      className="w-full bg-gradient-to-r from-red-500 to-orange-600 hover:opacity-90"
-                      size="lg"
-                    >
-                      {isUnlocking ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          Processando...
-                        </>
-                      ) : (
-                        <>
-                          Desbloquear Relatório Político Completo - R$ 19,90
-                        </>
-                      )}
-                    </Button>
+                    <UnlockPremiumButton
+                      attemptId={attemptId!}
+                      testType="political"
+                      onPaymentInitiated={startPolling}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -901,67 +889,6 @@ const Resultado = () => {
   const resultCategory = attempt.result_category || 'Resultado';
   const resultDescription = attempt.result_description || '';
 
-  function renderPaymentAlerts() {
-    return (
-      <>
-        {isVerifyingPayment && (
-          <Alert className="mb-6 max-w-2xl mx-auto">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <AlertTitle>Verificando pagamento...</AlertTitle>
-            <AlertDescription>Aguarde enquanto confirmamos seu pagamento.</AlertDescription>
-          </Alert>
-        )}
-
-        {paymentStatus === 'approved' && (
-          <Alert className="mb-6 max-w-2xl mx-auto border-success bg-success/10">
-            <CheckCircle className="h-4 w-4 text-success" />
-            <AlertTitle className="text-success">Pagamento Confirmado!</AlertTitle>
-            <AlertDescription>
-              Seu relatório premium foi liberado com sucesso.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {paymentStatus === 'pending' && (
-          <Alert className="mb-6 max-w-2xl mx-auto border-warning bg-warning/10">
-            <Clock className="h-4 w-4 text-warning" />
-            <AlertTitle className="text-warning">Pagamento Pendente</AlertTitle>
-            <AlertDescription>
-              Aguardando confirmação do pagamento. Se você pagou via PIX, pode levar alguns minutos.
-              <Button
-                variant="link"
-                className="p-0 h-auto ml-2"
-                onClick={verifyPayment}
-              >
-                Verificar novamente
-              </Button>
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {paymentStatus === 'expired' && (
-          <Alert className="mb-6 max-w-2xl mx-auto" variant="destructive">
-            <XCircle className="h-4 w-4" />
-            <AlertTitle>Pagamento Expirado</AlertTitle>
-            <AlertDescription>
-              O tempo para pagamento expirou. Por favor, tente novamente.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {paymentParam === 'cancelled' && (
-          <Alert className="mb-6 max-w-2xl mx-auto" variant="destructive">
-            <XCircle className="h-4 w-4" />
-            <AlertTitle>Pagamento Cancelado</AlertTitle>
-            <AlertDescription>
-              O pagamento foi cancelado. Você pode tentar novamente abaixo.
-            </AlertDescription>
-          </Alert>
-        )}
-      </>
-    );
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -969,7 +896,6 @@ const Resultado = () => {
         {renderPaymentAlerts()}
 
         <div className="max-w-3xl mx-auto space-y-8">
-          {/* Header Card */}
           <Card className="glass-card overflow-hidden">
             <div className={`h-2 bg-gradient-to-r ${config.color}`} />
             <CardHeader className="text-center pb-4">
@@ -982,7 +908,6 @@ const Resultado = () => {
               <CardDescription className="text-lg">{config.subtitle}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Score Display */}
               <div className="text-center p-6 rounded-xl bg-muted/30">
                 <div className="text-sm text-muted-foreground mb-2">{config.scoreLabel}</div>
                 <div className={`text-5xl font-bold bg-gradient-to-r ${config.color} bg-clip-text text-transparent`}>
@@ -993,46 +918,30 @@ const Resultado = () => {
                 <div className="text-sm text-muted-foreground mt-2">{percentage}% de aproveitamento</div>
               </div>
 
-              {/* Result Category */}
               <div className="text-center">
                 <Badge className={`text-lg px-4 py-2 bg-gradient-to-r ${config.color} text-white border-0`}>
                   {resultCategory}
                 </Badge>
               </div>
 
-              {/* Description */}
               <div className="p-4 rounded-lg bg-muted/20 border">
                 <p className="text-center text-muted-foreground leading-relaxed">
                   {resultDescription}
                 </p>
               </div>
 
-              {/* Premium CTA */}
               {!hasPremiumAccess && (
                 <div className="pt-4 border-t">
-                  <Button
-                    onClick={handleUnlockClick}
-                    disabled={isUnlocking}
-                    className={`w-full bg-gradient-to-r ${config.color} hover:opacity-90`}
-                    size="lg"
-                  >
-                    {isUnlocking ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Processando...
-                      </>
-                    ) : (
-                      <>
-                        Desbloquear Relatório Completo - R$ {config.premiumPrice.toFixed(2).replace('.', ',')}
-                      </>
-                    )}
-                  </Button>
+                  <UnlockPremiumButton
+                    attemptId={attemptId!}
+                    testType={testType}
+                    onPaymentInitiated={startPolling}
+                  />
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Paywall for non-premium users */}
           {!hasPremiumAccess && (
             <PremiumPaywall
               attemptId={attemptId!}
@@ -1040,7 +949,6 @@ const Resultado = () => {
             />
           )}
 
-          {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="outline" onClick={() => navigate('/testes')}>
               Fazer outro teste
@@ -1050,7 +958,6 @@ const Resultado = () => {
             </Button>
           </div>
 
-          {/* Disclaimer */}
           <p className="text-xs text-center text-muted-foreground">
             Este é um teste de caráter informativo e educacional. Os resultados não constituem diagnóstico psicológico ou médico.
           </p>
