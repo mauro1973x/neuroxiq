@@ -7,121 +7,104 @@ import QuizCard from "@/components/quiz/QuizCard";
 import { Quiz } from "@/lib/types";
 
 // Demo quizzes for initial display
-const demoQuizzes: Quiz[] = [
-  {
-    id: "1",
-    title: "Teste de QI Profissional",
-    description:
-      "Avalie sua capacidade cognitiva com nosso teste de QI cientificamente validado. Receba um resultado detalhado.",
-    test_type: "iq",
-    image_url: null,
-    duration_minutes: 30,
-    question_count: 30,
-    is_premium: true,
-    is_published: true,
-    price_basic: 0,
-    price_premium: 49.9,
-    price_certificate: 29.9,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    title: "Teste de Personalidade MBTI",
-    description: "Descubra seu tipo de personalidade entre os 16 perfis e entenda melhor seus pontos fortes.",
-    test_type: "personality",
-    image_url: null,
-    duration_minutes: 30,
-    question_count: 40,
-    is_premium: false,
-    is_published: true,
-    price_basic: 0,
-    price_premium: 39.9,
-    price_certificate: 19.9,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "3",
-    title: "Orientação de Carreira",
-    description: "Identifique as carreiras mais alinhadas com seu perfil, habilidades e valores pessoais.",
-    test_type: "career",
-    image_url: null,
-    duration_minutes: 30,
-    question_count: 40,
-    is_premium: true,
-    is_published: true,
-    price_basic: 0,
-    price_premium: 59.9,
-    price_certificate: 24.9,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "4",
-    title: "Teste de Orientação Político-Ideológica",
-    description: "Descubra seu posicionamento ideológico com base em valores sociais, econômicos e institucionais.",
-    test_type: "political",
-    image_url: null,
-    duration_minutes: 25,
-    question_count: 35,
-    is_premium: false,
-    is_published: true,
-    price_basic: 0,
-    price_premium: 39.9,
-    price_certificate: 19.9,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "5",
-    title: "Teste de Inteligência Emocional (QE)",
-    description: "Avalie sua capacidade emocional em situações pessoais, sociais e profissionais. Mede autoconsciência, empatia e gestão de relacionamentos.",
-    test_type: "emotional",
-    image_url: null,
-    duration_minutes: 20,
-    question_count: 30,
-    is_premium: true,
-    is_published: true,
-    price_basic: 0,
-    price_premium: 49.9,
-    price_certificate: 24.9,
-    created_at: new Date().toISOString(),
-  },
-];
-
-const features = [
-  {
-    icon: Brain,
-    title: "Testes Científicos",
-    description: "Metodologias validadas por especialistas em psicometria e psicologia.",
-  },
-  {
-    icon: Zap,
-    title: "Resultados Instantâneos",
-    description: "Receba seu resultado básico imediatamente após completar o teste.",
-  },
-  {
-    icon: Award,
-    title: "Certificados Oficiais",
-    description: "Gere certificados personalizados em PDF para compartilhar.",
-  },
-  {
-    icon: TrendingUp,
-    title: "Relatórios Detalhados",
-    description: "Análise profunda com interpretações e recomendações personalizadas.",
-  },
-  {
-    icon: Shield,
-    title: "Dados Seguros",
-    description: "Seus dados são criptografados e protegidos com as melhores práticas.",
-  },
-  {
-    icon: Users,
-    title: "+50.000 Usuários",
-    description: "Junte-se a milhares de pessoas que já descobriram mais sobre si mesmas.",
-  },
-];
-
+const demoQuizzes: Quiz[] = [{
+  id: "1",
+  title: "Teste de QI Profissional",
+  description: "Avalie sua capacidade cognitiva com nosso teste de QI cientificamente validado. Receba um resultado detalhado.",
+  test_type: "iq",
+  image_url: null,
+  duration_minutes: 30,
+  question_count: 30,
+  is_premium: true,
+  is_published: true,
+  price_basic: 0,
+  price_premium: 49.9,
+  price_certificate: 29.9,
+  created_at: new Date().toISOString()
+}, {
+  id: "2",
+  title: "Teste de Personalidade MBTI",
+  description: "Descubra seu tipo de personalidade entre os 16 perfis e entenda melhor seus pontos fortes.",
+  test_type: "personality",
+  image_url: null,
+  duration_minutes: 30,
+  question_count: 40,
+  is_premium: false,
+  is_published: true,
+  price_basic: 0,
+  price_premium: 39.9,
+  price_certificate: 19.9,
+  created_at: new Date().toISOString()
+}, {
+  id: "3",
+  title: "Orientação de Carreira",
+  description: "Identifique as carreiras mais alinhadas com seu perfil, habilidades e valores pessoais.",
+  test_type: "career",
+  image_url: null,
+  duration_minutes: 30,
+  question_count: 40,
+  is_premium: true,
+  is_published: true,
+  price_basic: 0,
+  price_premium: 59.9,
+  price_certificate: 24.9,
+  created_at: new Date().toISOString()
+}, {
+  id: "4",
+  title: "Teste de Orientação Político-Ideológica",
+  description: "Descubra seu posicionamento ideológico com base em valores sociais, econômicos e institucionais.",
+  test_type: "political",
+  image_url: null,
+  duration_minutes: 25,
+  question_count: 35,
+  is_premium: false,
+  is_published: true,
+  price_basic: 0,
+  price_premium: 39.9,
+  price_certificate: 19.9,
+  created_at: new Date().toISOString()
+}, {
+  id: "5",
+  title: "Teste de Inteligência Emocional (QE)",
+  description: "Avalie sua capacidade emocional em situações pessoais, sociais e profissionais. Mede autoconsciência, empatia e gestão de relacionamentos.",
+  test_type: "emotional",
+  image_url: null,
+  duration_minutes: 20,
+  question_count: 30,
+  is_premium: true,
+  is_published: true,
+  price_basic: 0,
+  price_premium: 49.9,
+  price_certificate: 24.9,
+  created_at: new Date().toISOString()
+}];
+const features = [{
+  icon: Brain,
+  title: "Testes Científicos",
+  description: "Metodologias validadas por especialistas em psicometria e psicologia."
+}, {
+  icon: Zap,
+  title: "Resultados Instantâneos",
+  description: "Receba seu resultado básico imediatamente após completar o teste."
+}, {
+  icon: Award,
+  title: "Certificados Oficiais",
+  description: "Gere certificados personalizados em PDF para compartilhar."
+}, {
+  icon: TrendingUp,
+  title: "Relatórios Detalhados",
+  description: "Análise profunda com interpretações e recomendações personalizadas."
+}, {
+  icon: Shield,
+  title: "Dados Seguros",
+  description: "Seus dados são criptografados e protegidos com as melhores práticas."
+}, {
+  icon: Users,
+  title: "+50.000 Usuários",
+  description: "Junte-se a milhares de pessoas que já descobriram mais sobre si mesmas."
+}];
 const Index = () => {
-  return (
-    <div className="min-h-screen flex flex-col">
+  return <div className="min-h-screen flex flex-col">
       <Header />
 
       {/* Hero Section */}
@@ -133,26 +116,23 @@ const Index = () => {
               <span className="text-sm font-medium">Teste de Inteligência Emocional disponível</span>
             </div>
 
-            <h1
-              className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in"
-              style={{ animationDelay: "0.1s" }}
-            >
+            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in" style={{
+            animationDelay: "0.1s"
+          }}>
               Descubra Seu
               <span className="text-gradient-primary"> Verdadeiro Potencial</span>
             </h1>
 
-            <p
-              className="text-lg md:text-xl text-muted-foreground mb-8 animate-fade-in"
-              style={{ animationDelay: "0.2s" }}
-            >
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 animate-fade-in" style={{
+            animationDelay: "0.2s"
+          }}>
               Testes científicos de personalidade, QI e carreira com resultados detalhados e certificados
               personalizados.
             </p>
 
-            <div
-              className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in"
-              style={{ animationDelay: "0.3s" }}
-            >
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{
+            animationDelay: "0.3s"
+          }}>
               <Link to="/cadastro">
                 <Button variant="hero" size="xl">
                   Começar Agora Grátis
@@ -167,16 +147,15 @@ const Index = () => {
             </div>
 
             {/* Stats */}
-            <div
-              className="grid grid-cols-3 gap-8 mt-16 pt-8 border-t border-border animate-fade-in"
-              style={{ animationDelay: "0.4s" }}
-            >
+            <div className="grid grid-cols-3 gap-8 mt-16 pt-8 border-t border-border animate-fade-in" style={{
+            animationDelay: "0.4s"
+          }}>
               <div>
                 <div className="font-display text-3xl md:text-4xl font-bold text-foreground">50k+</div>
                 <div className="text-sm text-muted-foreground">Usuários</div>
               </div>
               <div>
-                <div className="font-display text-3xl md:text-4xl font-bold text-foreground">5+</div>
+                <div className="font-display text-3xl md:text-4xl font-bold text-foreground">5</div>
                 <div className="text-sm text-muted-foreground">Tipos de Teste</div>
               </div>
               <div>
@@ -199,9 +178,7 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {demoQuizzes.map((quiz) => (
-              <QuizCard key={quiz.id} quiz={quiz} />
-            ))}
+            {demoQuizzes.map(quiz => <QuizCard key={quiz.id} quiz={quiz} />)}
           </div>
 
           <div className="text-center mt-10">
@@ -226,15 +203,13 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <div key={index} className="glass-card p-6 text-center hover:shadow-lg transition-all duration-300">
+            {features.map((feature, index) => <div key={index} className="glass-card p-6 text-center hover:shadow-lg transition-all duration-300">
                 <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 text-primary mx-auto mb-4">
                   <feature.icon className="h-7 w-7" />
                 </div>
                 <h3 className="font-display text-lg font-semibold mb-2">{feature.title}</h3>
                 <p className="text-sm text-muted-foreground">{feature.description}</p>
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
       </section>
@@ -258,8 +233,6 @@ const Index = () => {
       </section>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
