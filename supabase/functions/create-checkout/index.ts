@@ -79,7 +79,7 @@ serve(async (req) => {
         description: 'Certificado personalizado de avaliação cognitiva'
       },
       bundle: {
-        amount: 2990,
+        amount: 1990,
         name: 'Pacote Completo NEUROX',
         description: 'Relatório Premium + Certificado personalizado'
       }
