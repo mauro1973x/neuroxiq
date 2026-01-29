@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import QuizCard from "@/components/quiz/QuizCard";
+import PoliticalTestHighlight from "@/components/home/PoliticalTestHighlight";
 import { Quiz } from "@/lib/types";
 
 // Demo quizzes for initial display
@@ -184,6 +185,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Political Test Highlight */}
+      <PoliticalTestHighlight />
 
       {/* Features */}
       <section className="py-20 bg-muted/30">
