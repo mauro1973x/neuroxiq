@@ -137,8 +137,7 @@ const Sobre = () => {
           {/* Location */}
           <section className="text-center pt-8 border-t">
             <p className="text-muted-foreground">
-              <Globe className="h-4 w-4 inline-block mr-2" />
-              NEUROX • Sediada na Suécia
+              NEUROX . Suécia
             </p>
           </section>
         </div>
