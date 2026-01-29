@@ -16,6 +16,7 @@ import TesteCarreira from "./pages/TesteCarreira";
 import TestePolitico from "./pages/TestePolitico";
 import Resultado from "./pages/Resultado";
 import Precos from "./pages/Precos";
+import Sobre from "./pages/Sobre";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/teste-politico" element={<TestePolitico />} />
             <Route path="/resultado/:attemptId" element={<Resultado />} />
             <Route path="/precos" element={<Precos />} />
+            <Route path="/sobre" element={<Sobre />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
