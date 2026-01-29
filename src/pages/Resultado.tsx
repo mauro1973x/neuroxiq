@@ -16,14 +16,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { getResultBand, IQResultBand } from '@/data/iqQuestions';
 import { getEmotionalResultBand, EmotionalResultBand } from '@/data/emotionalQuestions';
 import { getPersonalityResultBand, PersonalityResultBand } from '@/data/personalityQuestions';
+import { getCareerResultBand, CareerResultBand } from '@/data/careerQuestions';
 import { useToast } from '@/hooks/use-toast';
 
 // Quiz IDs
 const IQ_QUIZ_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const EMOTIONAL_QUIZ_ID = 'b2c3d4e5-f6a7-8901-bcde-f23456789012';
 const PERSONALITY_QUIZ_ID = 'c3d4e5f6-a7b8-9012-cdef-345678901234';
+const CAREER_QUIZ_ID = 'd4e5f6a7-b8c9-0123-defa-456789012345';
 
-type TestType = 'iq' | 'emotional' | 'personality' | 'unknown';
+type TestType = 'iq' | 'emotional' | 'personality' | 'career' | 'unknown';
 
 interface AttemptData {
   id: string;
@@ -42,6 +44,7 @@ const getTestType = (quizId: string): TestType => {
     case IQ_QUIZ_ID: return 'iq';
     case EMOTIONAL_QUIZ_ID: return 'emotional';
     case PERSONALITY_QUIZ_ID: return 'personality';
+    case CAREER_QUIZ_ID: return 'career';
     default: return 'unknown';
   }
 };
@@ -81,6 +84,17 @@ const getTestConfig = (testType: TestType) => {
         scoreLabel: 'Pontuação Total',
         premiumPrice: 39.90
       };
+    case 'career':
+      return {
+        title: 'Resultado da Orientação de Carreira',
+        subtitle: 'Análise do seu perfil vocacional (RIASEC)',
+        icon: TrendingUp,
+        color: 'from-amber-500 to-orange-600',
+        totalQuestions: 42,
+        maxScore: 126,
+        scoreLabel: 'Pontuação Total',
+        premiumPrice: 39.90
+      };
     default:
       return {
         title: 'Resultado do Teste',
@@ -107,6 +121,7 @@ const Resultado = () => {
   const [iqResultBand, setIqResultBand] = useState<IQResultBand | null>(null);
   const [emotionalResultBand, setEmotionalResultBand] = useState<EmotionalResultBand | null>(null);
   const [personalityResultBand, setPersonalityResultBand] = useState<PersonalityResultBand | null>(null);
+  const [careerResultBand, setCareerResultBand] = useState<CareerResultBand | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
@@ -145,6 +160,9 @@ const Resultado = () => {
             break;
           case 'personality':
             setPersonalityResultBand(getPersonalityResultBand(data.total_score));
+            break;
+          case 'career':
+            setCareerResultBand(getCareerResultBand(data.total_score));
             break;
         }
       }
