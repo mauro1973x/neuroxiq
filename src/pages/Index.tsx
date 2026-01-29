@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import QuizCard from "@/components/quiz/QuizCard";
-import PoliticalTestHighlight from "@/components/home/PoliticalTestHighlight";
 import { Quiz } from "@/lib/types";
 
 // Demo quizzes for initial display
@@ -53,6 +52,21 @@ const demoQuizzes: Quiz[] = [
     price_basic: 0,
     price_premium: 59.9,
     price_certificate: 24.9,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "4",
+    title: "Teste de Orientação Político-Ideológica",
+    description: "Descubra seu posicionamento ideológico com base em valores sociais, econômicos e institucionais.",
+    test_type: "political",
+    image_url: null,
+    duration_minutes: 25,
+    question_count: 35,
+    is_premium: false,
+    is_published: true,
+    price_basic: 0,
+    price_premium: 39.9,
+    price_certificate: 19.9,
     created_at: new Date().toISOString(),
   },
 ];
@@ -185,9 +199,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-
-      {/* Political Test Highlight */}
-      <PoliticalTestHighlight />
 
       {/* Features */}
       <section className="py-20 bg-muted/30">

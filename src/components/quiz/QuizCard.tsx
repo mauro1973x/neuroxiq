@@ -50,7 +50,7 @@ const QuizCard = ({ quiz }: QuizCardProps) => {
       </div>
 
       {/* CTA */}
-      <Link to={quiz.test_type === 'iq' ? '/teste-qi' : `/teste/${quiz.id}`}>
+      <Link to={quiz.test_type === 'iq' ? '/teste-qi' : quiz.test_type === 'political' ? '/teste-politico' : `/teste/${quiz.id}`}>
         <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all">
           Começar Teste
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
