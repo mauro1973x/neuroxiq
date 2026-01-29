@@ -56,7 +56,7 @@ const demoQuizzes: Quiz[] = [{
   test_type: "political",
   image_url: null,
   duration_minutes: 25,
-  question_count: 35,
+  question_count: 40,
   is_premium: false,
   is_published: true,
   price_basic: 0,
