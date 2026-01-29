@@ -17,6 +17,9 @@ import TestePolitico from "./pages/TestePolitico";
 import Resultado from "./pages/Resultado";
 import Precos from "./pages/Precos";
 import Sobre from "./pages/Sobre";
+import Termos from "./pages/Termos";
+import Privacidade from "./pages/Privacidade";
+import Contato from "./pages/Contato";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +45,9 @@ const App = () => (
             <Route path="/resultado/:attemptId" element={<Resultado />} />
             <Route path="/precos" element={<Precos />} />
             <Route path="/sobre" element={<Sobre />} />
+            <Route path="/termos" element={<Termos />} />
+            <Route path="/privacidade" element={<Privacidade />} />
+            <Route path="/contato" element={<Contato />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
