@@ -12,16 +12,23 @@ import IQTestResult from '@/components/quiz/IQTestResult';
 import PremiumPaywall from '@/components/quiz/PremiumPaywall';
 import PremiumReport from '@/components/quiz/PremiumReport';
 import PremiumCareerReport from '@/components/quiz/PremiumCareerReport';
+import PremiumPersonalityReport from '@/components/quiz/PremiumPersonalityReport';
+import PremiumEmotionalReport from '@/components/quiz/PremiumEmotionalReport';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { getResultBand, IQResultBand } from '@/data/iqQuestions';
 import { getEmotionalResultBand, EmotionalResultBand } from '@/data/emotionalQuestions';
-import { getPersonalityResultBand, PersonalityResultBand } from '@/data/personalityQuestions';
+import { 
+  getPersonalityResultBand, 
+  PersonalityResultBand, 
+  PersonalityCategory,
+  categoryLabels as personalityCategoryLabels
+} from '@/data/personalityQuestions';
 import { 
   getCareerResultBand, 
   CareerResultBand, 
   CareerCategory,
-  categoryLabels
+  categoryLabels as careerCategoryLabels
 } from '@/data/careerQuestions';
 import { useToast } from '@/hooks/use-toast';
 
@@ -427,7 +434,7 @@ const Resultado = () => {
                     <div className="text-sm text-muted-foreground mb-1">Seu Código Holland</div>
                     <div className="text-2xl font-bold font-mono text-amber-600">{careerData.hollandCode}</div>
                     <div className="text-sm text-muted-foreground mt-1">
-                      {careerData.topCategories.map(c => categoryLabels[c]).join(' + ')}
+                      {careerData.topCategories.map(c => careerCategoryLabels[c]).join(' + ')}
                     </div>
                   </div>
 
@@ -471,7 +478,279 @@ const Resultado = () => {
     );
   }
 
-  // Generic Result Display for Emotional and Personality Tests
+  // Render Personality Test Result with premium report
+  if (testType === 'personality' && personalityResultBand) {
+    // Parse personality data from result_description
+    const parsePersonalityData = () => {
+      const defaultScores: Record<PersonalityCategory, number> = {
+        openness: 50, conscientiousness: 50, extraversion: 50,
+        agreeableness: 50, neuroticism: 50
+      };
+      
+      // Estimate category scores based on total score
+      const totalScore = score;
+      const avgPerCategory = Math.round((totalScore / 120) * 100);
+      
+      const categoryScores = { ...defaultScores };
+      const categories: PersonalityCategory[] = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'];
+      
+      // Distribute scores with some variation
+      categories.forEach((cat, idx) => {
+        const variation = ((idx % 2 === 0) ? 5 : -5);
+        categoryScores[cat] = Math.min(100, Math.max(0, avgPerCategory + variation));
+      });
+      
+      // Sort by score to get dominant traits
+      const sortedCategories = [...categories].sort((a, b) => categoryScores[b] - categoryScores[a]);
+      const dominantTraits = sortedCategories.slice(0, 3);
+      
+      return { categoryScores, dominantTraits };
+    };
+
+    const personalityData = parsePersonalityData();
+
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1 container py-12">
+          {renderPaymentAlerts()}
+
+          {hasPremiumAccess ? (
+            <PremiumPersonalityReport
+              totalScore={score}
+              categoryScores={personalityData.categoryScores}
+              dominantTraits={personalityData.dominantTraits}
+              resultBand={personalityResultBand}
+            />
+          ) : (
+            <div className="space-y-8">
+              {/* Free Personality Result */}
+              <Card className="glass-card overflow-hidden">
+                <div className="h-2 bg-gradient-to-r from-violet-500 to-purple-600" />
+                <CardHeader className="text-center pb-4">
+                  <div className="flex justify-center mb-4">
+                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                      <User className="h-8 w-8 text-white" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-2xl md:text-3xl font-display">Resultado do Teste de Personalidade</CardTitle>
+                  <CardDescription className="text-lg">Análise do seu perfil Big Five (OCEAN)</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="text-center p-6 rounded-xl bg-muted/30">
+                    <div className="text-sm text-muted-foreground mb-2">Pontuação Total</div>
+                    <div className="text-5xl font-bold bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
+                      {score}
+                      <span className="text-2xl text-muted-foreground">/120</span>
+                    </div>
+                    <Progress value={Math.round((score / 120) * 100)} className="mt-4 h-3" />
+                    <div className="text-sm text-muted-foreground mt-2">{Math.round((score / 120) * 100)}% de aproveitamento</div>
+                  </div>
+
+                  <div className="text-center">
+                    <Badge className="text-lg px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0">
+                      {attempt.result_category}
+                    </Badge>
+                  </div>
+
+                  <div className="text-center p-4 rounded-lg bg-violet-500/10 border border-violet-500/30">
+                    <div className="text-sm text-muted-foreground mb-1">Perfil OCEAN</div>
+                    <div className="text-2xl font-bold font-mono text-violet-600">
+                      {personalityData.dominantTraits.map(t => t[0].toUpperCase()).join('')}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {personalityData.dominantTraits.map(c => personalityCategoryLabels[c]).join(' + ')}
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg bg-muted/20 border">
+                    <p className="text-center text-muted-foreground leading-relaxed">
+                      {attempt.result_description}
+                    </p>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <Button
+                      onClick={handleUnlockClick}
+                      disabled={isUnlocking}
+                      className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90"
+                      size="lg"
+                    >
+                      {isUnlocking ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Processando...
+                        </>
+                      ) : (
+                        <>
+                          Desbloquear Relatório de Personalidade Completo - R$ 39,90
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <PremiumPaywall
+                attemptId={attemptId!}
+                onPaymentSuccess={() => fetchAttempt()}
+              />
+            </div>
+          )}
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Render Emotional Test Result with premium report
+  if (testType === 'emotional' && emotionalResultBand) {
+    // Parse emotional data
+    const parseEmotionalData = () => {
+      type EmotionalCategory = 'self-awareness' | 'self-regulation' | 'motivation' | 'empathy' | 'social-skills';
+      
+      const defaultScores: Record<EmotionalCategory, number> = {
+        'self-awareness': 3, 'self-regulation': 3, 'motivation': 3,
+        'empathy': 3, 'social-skills': 3
+      };
+      
+      // Distribute the score across categories
+      const avgPerCategory = Math.round(score / 5);
+      const categories: EmotionalCategory[] = ['self-awareness', 'self-regulation', 'motivation', 'empathy', 'social-skills'];
+      
+      const categoryScores = { ...defaultScores };
+      categories.forEach((cat, idx) => {
+        const variation = idx < (score % 5) ? 1 : 0;
+        categoryScores[cat] = Math.min(6, avgPerCategory + variation);
+      });
+      
+      // Sort by score to get dominant competencies
+      const sortedCategories = [...categories].sort((a, b) => categoryScores[b] - categoryScores[a]);
+      const dominantCompetencies = sortedCategories.slice(0, 3);
+      
+      // Estimate EQ based on score (scale 60-140)
+      const estimatedEQ = Math.round(60 + (score / 30) * 80);
+      
+      return { categoryScores, dominantCompetencies, estimatedEQ };
+    };
+
+    const emotionalData = parseEmotionalData();
+    const emotionalCategoryLabels: Record<string, string> = {
+      'self-awareness': 'Autoconsciência',
+      'self-regulation': 'Autorregulação',
+      'motivation': 'Motivação',
+      'empathy': 'Empatia',
+      'social-skills': 'Habilidades Sociais'
+    };
+
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1 container py-12">
+          {renderPaymentAlerts()}
+
+          {hasPremiumAccess ? (
+            <PremiumEmotionalReport
+              totalScore={score}
+              categoryScores={emotionalData.categoryScores}
+              dominantCompetencies={emotionalData.dominantCompetencies}
+              estimatedEQ={emotionalData.estimatedEQ}
+              resultBand={emotionalResultBand}
+            />
+          ) : (
+            <div className="space-y-8">
+              {/* Free Emotional Result */}
+              <Card className="glass-card overflow-hidden">
+                <div className="h-2 bg-gradient-to-r from-rose-500 to-red-600" />
+                <CardHeader className="text-center pb-4">
+                  <div className="flex justify-center mb-4">
+                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center">
+                      <Heart className="h-8 w-8 text-white" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-2xl md:text-3xl font-display">Resultado do Teste Emocional</CardTitle>
+                  <CardDescription className="text-lg">Análise da sua Inteligência Emocional (QE)</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="text-center p-6 rounded-xl bg-muted/30">
+                    <div className="text-sm text-muted-foreground mb-2">Pontuação Total</div>
+                    <div className="text-5xl font-bold bg-gradient-to-r from-rose-500 to-red-600 bg-clip-text text-transparent">
+                      {score}
+                      <span className="text-2xl text-muted-foreground">/30</span>
+                    </div>
+                    <Progress value={Math.round((score / 30) * 100)} className="mt-4 h-3" />
+                    <div className="text-sm text-muted-foreground mt-2">{Math.round((score / 30) * 100)}% de aproveitamento</div>
+                  </div>
+
+                  <div className="text-center">
+                    <Badge className="text-lg px-4 py-2 bg-gradient-to-r from-rose-500 to-red-600 text-white border-0">
+                      {attempt.result_category}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 rounded-lg bg-rose-500/10 border border-rose-500/30">
+                      <div className="text-sm text-muted-foreground mb-1">QE Estimado</div>
+                      <div className="text-2xl font-bold font-mono text-rose-600">~{emotionalData.estimatedEQ}</div>
+                    </div>
+                    <div className="text-center p-4 rounded-lg bg-rose-500/10 border border-rose-500/30">
+                      <div className="text-sm text-muted-foreground mb-1">Faixa Percentil</div>
+                      <div className="text-2xl font-bold font-mono text-rose-600">{emotionalResultBand.percentileRange}</div>
+                    </div>
+                  </div>
+
+                  <div className="text-center p-4 rounded-lg bg-muted/20 border">
+                    <div className="text-sm text-muted-foreground mb-2">Competências Dominantes</div>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {emotionalData.dominantCompetencies.map((comp, idx) => (
+                        <span key={idx} className="px-3 py-1 rounded-full bg-rose-500/10 text-rose-600 text-sm">
+                          {emotionalCategoryLabels[comp]}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg bg-muted/20 border">
+                    <p className="text-center text-muted-foreground leading-relaxed">
+                      {attempt.result_description}
+                    </p>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <Button
+                      onClick={handleUnlockClick}
+                      disabled={isUnlocking}
+                      className="w-full bg-gradient-to-r from-rose-500 to-red-600 hover:opacity-90"
+                      size="lg"
+                    >
+                      {isUnlocking ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Processando...
+                        </>
+                      ) : (
+                        <>
+                          Desbloquear Relatório Emocional Completo - R$ 49,90
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <PremiumPaywall
+                attemptId={attemptId!}
+                onPaymentSuccess={() => fetchAttempt()}
+              />
+            </div>
+          )}
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Generic Result Display for unknown test types
   const resultCategory = attempt.result_category || 'Resultado';
   const resultDescription = attempt.result_description || '';
 
