@@ -42,7 +42,7 @@ const demoQuizzes: Quiz[] = [{
   test_type: "career",
   image_url: null,
   duration_minutes: 30,
-  question_count: 40,
+  question_count: 42,
   is_premium: true,
   is_published: true,
   price_basic: 0,
