@@ -54,6 +54,7 @@ const QuizCard = ({ quiz }: QuizCardProps) => {
         quiz.test_type === 'iq' ? '/teste-qi' : 
         quiz.test_type === 'political' ? '/teste-politico' : 
         quiz.test_type === 'emotional' ? '/teste-emocional' :
+        quiz.test_type === 'personality' ? '/teste-personalidade' :
         `/teste/${quiz.id}`
       }>
         <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all">
