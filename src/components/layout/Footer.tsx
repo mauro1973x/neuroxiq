@@ -53,13 +53,29 @@ const Footer = () => {
                   Inteligência Emocional
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/teste-politico"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Orientação Político-Ideológica
+                </Link>
+              </li>
             </ul>
           </div>
 
-          {/* Empresa */}
+          {/* Contato */}
           <div>
-            <h4 className="font-display font-semibold mb-4">Empresa</h4>
+            <h4 className="font-display font-semibold mb-4">Contato</h4>
             <ul className="space-y-2">
+              <li>
+                <a 
+                  href="mailto:hello.neurox@gmail.com" 
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  hello.neurox@gmail.com
+                </a>
+              </li>
               <li>
                 <Link to="/sobre" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   Sobre Nós
@@ -68,11 +84,6 @@ const Footer = () => {
               <li>
                 <Link to="/precos" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   Preços
-                </Link>
-              </li>
-              <li>
-                <Link to="/contato" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Contato
                 </Link>
               </li>
             </ul>
