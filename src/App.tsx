@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Testes from "./pages/Testes";
 import TesteQI from "./pages/TesteQI";
 import TesteEmocional from "./pages/TesteEmocional";
+import TestePersonalidade from "./pages/TestePersonalidade";
 import Resultado from "./pages/Resultado";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/testes" element={<Testes />} />
             <Route path="/teste-qi" element={<TesteQI />} />
             <Route path="/teste-emocional" element={<TesteEmocional />} />
+            <Route path="/teste-personalidade" element={<TestePersonalidade />} />
             <Route path="/resultado/:attemptId" element={<Resultado />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
