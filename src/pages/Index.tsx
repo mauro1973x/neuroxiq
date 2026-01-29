@@ -69,6 +69,21 @@ const demoQuizzes: Quiz[] = [
     price_certificate: 19.9,
     created_at: new Date().toISOString(),
   },
+  {
+    id: "5",
+    title: "Teste de Inteligência Emocional (QE)",
+    description: "Avalie sua capacidade emocional em situações pessoais, sociais e profissionais. Mede autoconsciência, empatia e gestão de relacionamentos.",
+    test_type: "emotional",
+    image_url: null,
+    duration_minutes: 20,
+    question_count: 30,
+    is_premium: true,
+    is_published: true,
+    price_basic: 0,
+    price_premium: 49.9,
+    price_certificate: 24.9,
+    created_at: new Date().toISOString(),
+  },
 ];
 
 const features = [
