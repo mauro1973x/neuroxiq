@@ -121,8 +121,9 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${origin}/resultado/${attemptId}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/resultado/${attemptId}?payment=cancelled`,
+      // Server-side validation URL for redundant payment verification
+      success_url: `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/payment/cancel?testAttemptId=${attemptId}`,
       metadata: {
         user_id: user.id,
         attempt_id: attemptId,
