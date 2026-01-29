@@ -1,7 +1,8 @@
-import { Brain, Target, Shield, Users, Globe } from 'lucide-react';
+import { Target, Shield, Users, Globe } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import logo from '@/assets/logo.png';
 
 const Sobre = () => {
   return (
@@ -12,9 +13,7 @@ const Sobre = () => {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <div className="flex justify-center mb-6">
-            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-              <Brain className="h-10 w-10 text-primary-foreground" />
-            </div>
+            <img src={logo} alt="NEUROX Logo" className="h-24 w-auto" />
           </div>
           <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
             Sobre a <span className="text-primary">NEUROX</span>
