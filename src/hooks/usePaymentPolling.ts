@@ -50,8 +50,10 @@ export const usePaymentPolling = ({
     if (!attemptId) return false;
 
     try {
-      console.log('[PAYMENT-POLLING] Checking payment status for attempt:', attemptId);
+      console.log('[PAYMENT-POLLING] Checking DATABASE for payment status, attempt:', attemptId);
       
+      // SECURITY: Check DATABASE directly - this is the source of truth
+      // Only the webhook can set has_premium_access = true
       const { data, error: fetchError } = await supabase
         .from('test_attempts')
         .select('has_premium_access, payment_status')
@@ -63,10 +65,12 @@ export const usePaymentPolling = ({
         throw fetchError;
       }
 
-      console.log('[PAYMENT-POLLING] Status check result:', data);
+      console.log('[PAYMENT-POLLING] Database status:', data);
 
-      if (data?.has_premium_access === true || data?.payment_status === 'approved') {
-        console.log('[PAYMENT-POLLING] Payment confirmed! Access granted.');
+      // Only consider confirmed if BOTH conditions are met in the database
+      // These can ONLY be set by the webhook
+      if (data?.has_premium_access === true && data?.payment_status === 'approved') {
+        console.log('[PAYMENT-POLLING] Payment confirmed via webhook! Access granted.');
         setPaymentConfirmed(true);
         setPaymentStatus('approved');
         return true;

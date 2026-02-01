@@ -52,7 +52,40 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: message }), { status: 400 });
     }
 
-    logStep("Event received", { type: event.type, eventId: event.id });
+    logStep("Event received", { type: event.type, eventId: event.id, livemode: event.livemode });
+
+    // SECURITY: In LIVE mode, only process LIVE events
+    // This prevents test card payments from unlocking content in production
+    const isProduction = Deno.env.get("STRIPE_SECRET_KEY")?.startsWith("sk_live");
+    if (isProduction && !event.livemode) {
+      logStep("SECURITY: Rejecting test mode event in production", { 
+        eventId: event.id, 
+        livemode: event.livemode,
+        isProduction: true
+      });
+      
+      // Log this rejection for audit
+      await supabase
+        .from('payment_events')
+        .insert({
+          stripe_event_id: event.id,
+          event_type: `REJECTED_TEST_EVENT_${event.type}`,
+          payload_summary: {
+            reason: 'Test mode event rejected in production',
+            livemode: event.livemode,
+            type: event.type,
+          },
+          processed: true,
+          processed_at: new Date().toISOString(),
+          error: 'Test mode event rejected in production'
+        });
+
+      return new Response(JSON.stringify({ 
+        received: true, 
+        rejected: true,
+        reason: "Test mode events not processed in production"
+      }), { status: 200 });
+    }
 
     // IDEMPOTENCY CHECK: Check if this event was already processed
     const { data: existingEvent } = await supabase
@@ -80,7 +113,8 @@ serve(async (req) => {
         payload_summary: {
           type: event.type,
           created: event.created,
-          livemode: event.livemode
+          livemode: event.livemode,
+          payment_status: sessionObj?.payment_status || null,
         },
         processed: false,
       });
@@ -96,11 +130,17 @@ serve(async (req) => {
         const session = event.data.object as Stripe.Checkout.Session;
         logStep("Checkout session completed", { 
           sessionId: session.id, 
-          paymentStatus: session.payment_status 
+          paymentStatus: session.payment_status,
+          livemode: session.livemode
         });
 
+        // ONLY unlock if payment_status is 'paid' AND event is livemode (in production)
         if (session.payment_status === 'paid') {
-          await handleSuccessfulPayment(supabase, session, event.id);
+          await handleSuccessfulPayment(supabase, session, event.id, event.livemode);
+        } else {
+          logStep("Payment status not 'paid', skipping unlock", { 
+            paymentStatus: session.payment_status 
+          });
         }
         break;
       }
@@ -108,8 +148,8 @@ serve(async (req) => {
       case 'checkout.session.async_payment_succeeded': {
         // For PIX payments that complete asynchronously
         const session = event.data.object as Stripe.Checkout.Session;
-        logStep("Async payment succeeded (PIX)", { sessionId: session.id });
-        await handleSuccessfulPayment(supabase, session, event.id);
+        logStep("Async payment succeeded (PIX)", { sessionId: session.id, livemode: session.livemode });
+        await handleSuccessfulPayment(supabase, session, event.id, event.livemode);
         break;
       }
 
@@ -145,7 +185,8 @@ serve(async (req) => {
         logStep("Payment intent succeeded", { 
           paymentIntentId: paymentIntent.id,
           amount: paymentIntent.amount,
-          status: paymentIntent.status
+          status: paymentIntent.status,
+          livemode: paymentIntent.livemode
         });
         // Payment intents are typically handled via checkout.session.completed
         // but logging here for visibility
@@ -189,13 +230,14 @@ serve(async (req) => {
 async function handleSuccessfulPayment(
   supabase: any,
   session: Stripe.Checkout.Session,
-  eventId: string
+  eventId: string,
+  livemode: boolean
 ) {
   const attemptId = session.metadata?.attempt_id;
   const userId = session.metadata?.user_id;
   const purchaseType = session.metadata?.purchase_type || 'premium_report';
 
-  logStep("Processing successful payment", { attemptId, userId, purchaseType, eventId });
+  logStep("Processing successful payment", { attemptId, userId, purchaseType, eventId, livemode });
 
   if (!attemptId || !userId) {
     logStep("Missing metadata", { attemptId, userId });
@@ -263,6 +305,12 @@ async function handleSuccessfulPayment(
   if (attemptError) {
     logStep("Failed to update attempt", { error: attemptError.message });
   } else {
-    logStep("Access granted successfully via webhook", { attemptId, eventId, purchaseType, fields: Object.keys(updateFields) });
+    logStep("Access granted successfully via webhook", { 
+      attemptId, 
+      eventId, 
+      purchaseType, 
+      livemode,
+      fields: Object.keys(updateFields) 
+    });
   }
 }
