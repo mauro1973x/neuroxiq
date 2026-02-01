@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Loader2, Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
+import { Loader2, Sparkles, AlertCircle, RefreshCw, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { startCheckout, CheckoutResult } from '@/lib/checkout';
 
 type TestType = 'iq' | 'emotional' | 'personality' | 'career' | 'political' | 'unknown';
 
@@ -34,7 +34,7 @@ const testTypeGradients: Record<TestType, string> = {
 
 const PREMIUM_PRICE = 19.90;
 
-type ButtonState = 'idle' | 'loading' | 'redirecting' | 'error';
+type ButtonState = 'idle' | 'loading' | 'redirecting' | 'error' | 'fallback';
 
 const UnlockPremiumButton = ({ 
   attemptId, 
@@ -44,17 +44,10 @@ const UnlockPremiumButton = ({
 }: UnlockPremiumButtonProps) => {
   const [buttonState, setButtonState] = useState<ButtonState>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fallbackUrl, setFallbackUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const isEmbeddedInIframe = () => {
-    try {
-      return window.self !== window.top;
-    } catch {
-      // If cross-origin access blocks, assume we are embedded
-      return true;
-    }
-  };
-
+  // Handle checkout - called directly on button click (user-initiated)
   const handleUnlockClick = async () => {
     if (!attemptId) {
       console.error('[UNLOCK-BUTTON] No attemptId provided');
@@ -66,80 +59,41 @@ const UnlockPremiumButton = ({
     console.log('[UNLOCK-BUTTON] Starting checkout for attempt:', attemptId, 'testType:', testType);
     setButtonState('loading');
     setErrorMessage(null);
-
-    // IMPORTANT: In the Lovable preview, the app runs inside an iframe.
-    // Stripe Checkout cannot be rendered inside iframes (frame-ancestors restrictions),
-    // which results in a blank page if we navigate the iframe to checkout.stripe.com.
-    // So, when embedded, we open the checkout in a new tab.
-    const embedded = isEmbeddedInIframe();
-    const checkoutWindow: Window | null = embedded ? window.open('about:blank', '_blank') : null;
-    if (checkoutWindow) {
-      try {
-        checkoutWindow.opener = null;
-      } catch {
-        // ignore
-      }
-    }
+    setFallbackUrl(null);
     
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { 
-          attemptId, 
-          purchaseType: 'premium_report'
-        }
-      });
+    // Call centralized checkout function
+    const result: CheckoutResult = await startCheckout({
+      attemptId,
+      purchaseType: 'premium_report'
+    });
 
-      if (error) {
-        console.error('[UNLOCK-BUTTON] Checkout error:', error);
-        throw new Error(error.message || 'Erro ao criar sessão de pagamento');
-      }
-
-      // Validate response has URL
-      if (!data?.url) {
-        console.error('[UNLOCK-BUTTON] No checkout URL in response:', data);
-        throw new Error('URL de checkout não retornada pelo servidor');
-      }
-
-      console.log('[UNLOCK-BUTTON] Checkout session created:', data?.sessionId);
-
-      // Show toast if PIX is unavailable
-      if (data?.pix_available === false) {
+    if (result.success) {
+      // Navigation initiated successfully
+      setButtonState('redirecting');
+      onPaymentInitiated?.();
+      
+      if (result.pixAvailable === false) {
         toast({
           title: 'PIX indisponível',
           description: 'PIX indisponível no momento. Use cartão.',
           variant: 'default',
         });
       }
-
-      // Change state to redirecting before navigation
-      setButtonState('redirecting');
-      onPaymentInitiated?.();
-
-      // Redirect to Stripe Checkout WITHOUT router.push.
-      // If embedded, use the new tab (prevents blank screen in iframe).
-      if (checkoutWindow) {
-        checkoutWindow.location.href = data.url;
-        toast({
-          title: 'Pagamento aberto',
-          description: 'O checkout foi aberto em uma nova aba para evitar bloqueio no preview.',
-          variant: 'default',
-        });
-        // Keep the current page usable (no infinite "redirecting" state)
-        setButtonState('idle');
-        return;
-      }
-
-      window.location.assign(data.url);
-
-    } catch (error) {
-      console.error('[UNLOCK-BUTTON] Error:', error);
-      const message = error instanceof Error ? error.message : 'Erro desconhecido';
-      setErrorMessage(message);
+    } else if (result.fallbackUrl) {
+      // Navigation failed but we have the URL for manual click
+      console.log('[UNLOCK-BUTTON] Navigation failed, showing fallback link');
+      setFallbackUrl(result.fallbackUrl);
+      setErrorMessage(result.error || 'Não foi possível redirecionar automaticamente.');
+      setButtonState('fallback');
+    } else {
+      // Complete failure
+      console.error('[UNLOCK-BUTTON] Checkout failed:', result.error);
+      setErrorMessage(result.error || 'Erro ao processar pagamento');
       setButtonState('error');
       
       toast({
         title: 'Erro ao iniciar pagamento',
-        description: 'Tente novamente ou entre em contato com o suporte.',
+        description: result.error || 'Tente novamente ou entre em contato com o suporte.',
         variant: 'destructive',
       });
     }
@@ -148,10 +102,42 @@ const UnlockPremiumButton = ({
   const handleRetry = () => {
     setButtonState('idle');
     setErrorMessage(null);
+    setFallbackUrl(null);
   };
 
   const gradient = testTypeGradients[testType] || testTypeGradients.unknown;
   const label = testTypeLabels[testType] || testTypeLabels.unknown;
+
+  // Show fallback state with manual link
+  if (buttonState === 'fallback' && fallbackUrl) {
+    return (
+      <div className="space-y-3">
+        <Alert className="border-warning/50 bg-warning/5">
+          <AlertCircle className="h-4 w-4 text-warning" />
+          <AlertDescription className="ml-2">
+            {errorMessage}
+          </AlertDescription>
+        </Alert>
+        <a
+          href={fallbackUrl}
+          target="_top"
+          rel="noopener noreferrer"
+          className={`flex items-center justify-center gap-2 w-full min-h-[52px] md:min-h-[48px] text-base md:text-base font-semibold bg-gradient-to-r ${gradient} hover:opacity-90 active:scale-[0.98] transition-all shadow-lg rounded-lg text-white px-4 py-3`}
+        >
+          <ExternalLink className="h-5 w-5" />
+          Abrir Pagamento
+        </a>
+        <Button
+          onClick={handleRetry}
+          variant="ghost"
+          size="sm"
+          className="w-full"
+        >
+          Tentar novamente
+        </Button>
+      </div>
+    );
+  }
 
   // Show error state with retry button
   if (buttonState === 'error') {
