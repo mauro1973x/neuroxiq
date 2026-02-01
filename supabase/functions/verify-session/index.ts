@@ -138,7 +138,16 @@ serve(async (req) => {
       updateFields.has_premium_access = true;
     }
     if (purchaseType === 'certificate' || purchaseType === 'bundle') {
+      // Generate unique validation code for certificate
+      const validationCode = 'NX-' + [...Array(10)].map(() => 
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 36)]
+      ).join('');
+      
       updateFields.has_certificate = true;
+      updateFields.certificate_payment_status = 'paid';
+      updateFields.certificate_issued_at = new Date().toISOString();
+      updateFields.validation_code = validationCode;
+      updateFields.stripe_certificate_session_id = sessionId;
     }
 
     const { error: attemptError } = await supabaseAdmin

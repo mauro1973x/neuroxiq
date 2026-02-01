@@ -66,22 +66,25 @@ serve(async (req) => {
     }
     logStep("Test attempt verified", { attemptId, score: attempt.total_score });
 
+    // Get test name for dynamic product names
+    const testName = attempt.test_name || 'Avaliação Cognitiva';
+    
     // Define prices based on purchase type
     const prices: Record<string, { amount: number; name: string; description: string }> = {
       premium_report: {
         amount: 1990,
-        name: 'Relatório Premium de QI - NEUROX',
-        description: 'Análise cognitiva completa com interpretações detalhadas e recomendações personalizadas'
+        name: `Relatório Premium - ${testName} - NEUROX`,
+        description: 'Análise completa com interpretações detalhadas e recomendações personalizadas'
       },
       certificate: {
         amount: 1990,
-        name: 'Certificado NEUROX',
-        description: 'Certificado personalizado de avaliação cognitiva'
+        name: `Certificado Oficial - ${testName} - NEUROX`,
+        description: 'Certificado personalizado com seu nome, resultado e código de validação único'
       },
       bundle: {
         amount: 2990,
-        name: 'Pacote Completo NEUROX',
-        description: 'Relatório Premium + Certificado personalizado'
+        name: `Pacote Completo - ${testName} - NEUROX`,
+        description: 'Relatório Premium + Certificado oficial personalizado'
       }
     };
 
@@ -101,8 +104,11 @@ serve(async (req) => {
     }
     logStep("Customer lookup", { customerId: customerId || 'new customer' });
 
-    // Create checkout session
+    // Determine success URL based on purchase type
     const origin = req.headers.get("origin") || "https://id-preview--bcfe8610-8fc5-47c8-9e4c-86c65109b40f.lovable.app";
+    const successUrl = purchaseType === 'certificate' 
+      ? `${origin}/certificado/${attemptId}?payment=success&session_id={CHECKOUT_SESSION_ID}`
+      : `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`;
     
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
@@ -121,13 +127,13 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      // Server-side validation URL for redundant payment verification
-      success_url: `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: successUrl,
       cancel_url: `${origin}/payment/cancel?testAttemptId=${attemptId}`,
       metadata: {
         user_id: user.id,
         attempt_id: attemptId,
         purchase_type: purchaseType,
+        test_name: testName,
       },
     };
 

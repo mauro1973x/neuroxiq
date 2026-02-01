@@ -529,6 +529,8 @@ export type Database = {
       }
       test_attempts: {
         Row: {
+          certificate_issued_at: string | null
+          certificate_payment_status: string | null
           certificate_url: string | null
           completed_at: string | null
           has_certificate: boolean | null
@@ -543,11 +545,18 @@ export type Database = {
           quiz_id: string
           result_category: string | null
           result_description: string | null
+          score_label: string | null
+          score_value: string | null
           started_at: string
+          stripe_certificate_session_id: string | null
+          test_name: string | null
           total_score: number | null
           user_id: string
+          validation_code: string | null
         }
         Insert: {
+          certificate_issued_at?: string | null
+          certificate_payment_status?: string | null
           certificate_url?: string | null
           completed_at?: string | null
           has_certificate?: boolean | null
@@ -562,11 +571,18 @@ export type Database = {
           quiz_id: string
           result_category?: string | null
           result_description?: string | null
+          score_label?: string | null
+          score_value?: string | null
           started_at?: string
+          stripe_certificate_session_id?: string | null
+          test_name?: string | null
           total_score?: number | null
           user_id: string
+          validation_code?: string | null
         }
         Update: {
+          certificate_issued_at?: string | null
+          certificate_payment_status?: string | null
           certificate_url?: string | null
           completed_at?: string | null
           has_certificate?: boolean | null
@@ -581,9 +597,14 @@ export type Database = {
           quiz_id?: string
           result_category?: string | null
           result_description?: string | null
+          score_label?: string | null
+          score_value?: string | null
           started_at?: string
+          stripe_certificate_session_id?: string | null
+          test_name?: string | null
           total_score?: number | null
           user_id?: string
+          validation_code?: string | null
         }
         Relationships: [
           {
@@ -1077,6 +1098,7 @@ export type Database = {
           total_score: number
         }[]
       }
+      generate_validation_code: { Args: never; Returns: string }
       get_premium_result_band: {
         Args: { p_attempt_id: string }
         Returns: {

@@ -110,7 +110,8 @@ const TesteQI = () => {
     }
 
     try {
-      // Save result to database
+      // Save result to database with certificate fields
+      const estimatedIQ = 85 + Math.round((score / 30) * 45); // Estimate IQ based on score
       const { error } = await supabase
         .from('test_attempts')
         .update({
@@ -118,6 +119,10 @@ const TesteQI = () => {
           total_score: score,
           result_category: resultBand.name,
           result_description: resultBand.freeDescription,
+          iq_estimated: estimatedIQ,
+          test_name: 'Teste de QI',
+          score_label: 'QI estimado',
+          score_value: String(estimatedIQ),
         })
         .eq('id', attemptId);
 
