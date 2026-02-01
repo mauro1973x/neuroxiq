@@ -1,1 +1,4 @@
 project_id = "gcwqmbugqksztdukjlez"
+
+[functions.stripe-redirect]
+verify_jwt = false
