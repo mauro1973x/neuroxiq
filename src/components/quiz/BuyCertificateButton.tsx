@@ -52,8 +52,10 @@ const BuyCertificateButton = ({
       console.log('[BUY-CERTIFICATE] Checkout session created:', data?.sessionId);
 
       if (data?.url) {
+        console.log('[BUY-CERTIFICATE] Redirecting to checkout (same tab):', data.url);
         onPaymentInitiated?.();
-        window.open(data.url, '_blank');
+        // Use same tab redirect to avoid popup blockers and ensure proper return flow
+        window.location.href = data.url;
       }
     } catch (error) {
       console.error('[BUY-CERTIFICATE] Error:', error);
