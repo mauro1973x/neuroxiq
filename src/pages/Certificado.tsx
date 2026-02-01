@@ -17,6 +17,7 @@ import { ptBR } from 'date-fns/locale';
 interface CertificateData {
   id: string;
   user_id: string;
+  quiz_id: string;
   test_name: string | null;
   score_label: string | null;
   score_value: string | null;
@@ -27,6 +28,10 @@ interface CertificateData {
   certificate_payment_status: string | null;
   validation_code: string | null;
   certificate_issued_at: string | null;
+}
+
+interface QuizData {
+  test_type: string;
 }
 
 interface ProfileData {
@@ -41,6 +46,7 @@ const Certificado = () => {
   const { toast } = useToast();
 
   const [attempt, setAttempt] = useState<CertificateData | null>(null);
+  const [quiz, setQuiz] = useState<QuizData | null>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +66,7 @@ const Certificado = () => {
       // Fetch attempt data
       const { data: attemptData, error: attemptError } = await supabase
         .from('test_attempts')
-        .select('id, user_id, test_name, score_label, score_value, total_score, iq_estimated, result_category, has_certificate, certificate_payment_status, validation_code, certificate_issued_at')
+        .select('id, user_id, quiz_id, test_name, score_label, score_value, total_score, iq_estimated, result_category, has_certificate, certificate_payment_status, validation_code, certificate_issued_at')
         .eq('id', attemptId)
         .eq('user_id', user.id)
         .single();
@@ -75,6 +81,17 @@ const Certificado = () => {
         validation_code: attemptData.validation_code
       });
       setAttempt(attemptData as CertificateData);
+
+      // Fetch quiz to get test_type
+      const { data: quizData } = await supabase
+        .from('quizzes')
+        .select('test_type')
+        .eq('id', attemptData.quiz_id)
+        .single();
+
+      if (quizData) {
+        setQuiz(quizData as QuizData);
+      }
 
       // Fetch user profile
       const { data: profileData } = await supabase
@@ -246,8 +263,8 @@ const Certificado = () => {
   // Derive test name and score
   const testName = attempt.test_name || 'Avaliação Cognitiva';
   
-  // For IQ test, use "QI estimado" as the label with the iq_estimated value
-  const isIQTest = testName.toLowerCase().includes('qi') || testName.toLowerCase().includes('inteligência');
+  // ONLY show "QI estimado" for IQ tests (test_type === 'iq')
+  const isIQTest = quiz?.test_type === 'iq';
   const scoreLabel = isIQTest ? 'QI estimado' : (attempt.score_label || 'Resultado');
   const scoreValue = isIQTest && attempt.iq_estimated 
     ? String(attempt.iq_estimated) 
