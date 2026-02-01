@@ -98,15 +98,15 @@ const CertificateTemplate = ({
           {/* Title - Certificado de Avaliação Cognitiva */}
           <div 
             className="absolute text-center w-full"
-            style={{ top: '100px' }}
+            style={{ top: '115px' }}
           >
             <h1 
-              className="text-2xl font-bold tracking-wide"
+              className="text-xl font-bold tracking-wide"
               style={{ 
                 fontFamily: 'Georgia, serif',
                 color: '#1a365d',
                 textTransform: 'uppercase',
-                letterSpacing: '4px'
+                letterSpacing: '3px'
               }}
             >
               Certificado de Avaliação Cognitiva
