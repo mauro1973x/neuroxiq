@@ -104,11 +104,16 @@ serve(async (req) => {
     }
     logStep("Customer lookup", { customerId: customerId || 'new customer' });
 
-    // Determine success URL based on purchase type
+    // Determine success URL based on purchase type - redirect directly to result page
     const origin = req.headers.get("origin") || "https://id-preview--bcfe8610-8fc5-47c8-9e4c-86c65109b40f.lovable.app";
-    const successUrl = purchaseType === 'certificate' 
-      ? `${origin}/certificado/${attemptId}?payment=success&session_id={CHECKOUT_SESSION_ID}`
-      : `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`;
+    let successUrl: string;
+    
+    if (purchaseType === 'certificate') {
+      successUrl = `${origin}/certificado/${attemptId}?payment=success&session_id={CHECKOUT_SESSION_ID}`;
+    } else {
+      // For premium report, redirect directly to resultado page with session for verification
+      successUrl = `${origin}/resultado/${attemptId}?payment=success&session_id={CHECKOUT_SESSION_ID}`;
+    }
     
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
