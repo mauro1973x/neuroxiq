@@ -115,7 +115,7 @@ serve(async (req) => {
       successUrl = `${origin}/resultado/${attemptId}?payment=success&session_id={CHECKOUT_SESSION_ID}`;
     }
     
-    const sessionConfig: Stripe.Checkout.SessionCreateParams = {
+    const baseSessionConfig: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
@@ -142,16 +142,42 @@ serve(async (req) => {
       },
     };
 
-    // Support both card and PIX payment methods for Brazil
-    sessionConfig.payment_method_types = ['card', 'pix'];
-    sessionConfig.payment_method_options = {
-      pix: {
-        expires_after_seconds: 1800, // 30 minutes
-      },
-    };
+    let session: Stripe.Checkout.Session;
+    let pixAvailable = true;
 
-    const session = await stripe.checkout.sessions.create(sessionConfig);
-    logStep("Checkout session created", { sessionId: session.id });
+    try {
+      // First attempt: use automatic_payment_methods (includes PIX if available)
+      const sessionWithAuto = await stripe.checkout.sessions.create({
+        ...baseSessionConfig,
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+      session = sessionWithAuto;
+      logStep("Checkout session created with automatic payment methods", { sessionId: session.id });
+    } catch (autoError) {
+      const errorMessage = autoError instanceof Error ? autoError.message : String(autoError);
+      logStep("Automatic payment methods failed, trying card-only fallback", { error: errorMessage });
+      
+      // Check if error is PIX-related
+      if (errorMessage.includes("pix") || errorMessage.includes("payment method")) {
+        pixAvailable = false;
+      }
+
+      try {
+        // Fallback: card only
+        const sessionCardOnly = await stripe.checkout.sessions.create({
+          ...baseSessionConfig,
+          payment_method_types: ['card'],
+        });
+        session = sessionCardOnly;
+        logStep("Checkout session created with card-only fallback", { sessionId: session.id });
+      } catch (cardError) {
+        const cardErrorMessage = cardError instanceof Error ? cardError.message : String(cardError);
+        logStep("Card-only fallback also failed", { error: cardErrorMessage });
+        throw cardError;
+      }
+    }
 
     // Create purchase record using admin client
     const { error: purchaseError } = await supabaseAdmin
@@ -171,7 +197,11 @@ serve(async (req) => {
       logStep("Warning: Failed to create purchase record", { error: purchaseError.message });
     }
 
-    return new Response(JSON.stringify({ url: session.url, sessionId: session.id }), {
+    return new Response(JSON.stringify({ 
+      url: session.url, 
+      sessionId: session.id,
+      pix_available: pixAvailable 
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
