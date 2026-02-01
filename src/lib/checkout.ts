@@ -19,6 +19,15 @@ export interface CheckoutResult {
 }
 
 /**
+ * Maps purchase type to product parameter for the redirect endpoint
+ */
+const purchaseTypeToProduct: Record<PurchaseType, string> = {
+  premium_report: 'report',
+  certificate: 'certificate',
+  bundle: 'bundle'
+};
+
+/**
  * Detects if the app is running inside an iframe (e.g., Lovable preview).
  */
 export const isEmbeddedInIframe = (): boolean => {
@@ -31,6 +40,24 @@ export const isEmbeddedInIframe = (): boolean => {
 };
 
 /**
+ * Gets the base URL for the Supabase functions
+ */
+const getSupabaseUrl = (): string => {
+  // Use the Supabase URL from environment or fallback
+  return import.meta.env.VITE_SUPABASE_URL || 'https://gcwqmbugqksztdukjlez.supabase.co';
+};
+
+/**
+ * Builds the server-side redirect URL for Stripe checkout.
+ * This URL triggers a 303 redirect directly to Stripe, bypassing iframe restrictions.
+ */
+export const buildCheckoutRedirectUrl = (params: CheckoutParams): string => {
+  const supabaseUrl = getSupabaseUrl();
+  const product = purchaseTypeToProduct[params.purchaseType] || 'report';
+  return `${supabaseUrl}/functions/v1/stripe-redirect?attemptId=${params.attemptId}&product=${product}`;
+};
+
+/**
  * Navigates to the Stripe Checkout URL.
  * Handles iframe environments by using window.top.
  * Returns true if navigation succeeded, false if it failed.
@@ -38,21 +65,21 @@ export const isEmbeddedInIframe = (): boolean => {
 export const navigateToCheckout = (url: string): boolean => {
   try {
     const embedded = isEmbeddedInIframe();
-    console.log('[CHECKOUT] Navigating to checkout, embedded:', embedded, 'url:', url.substring(0, 50) + '...');
+    console.log('[CHECKOUT] Navigating to checkout, embedded:', embedded, 'url:', url.substring(0, 80) + '...');
 
     if (embedded) {
       // In iframe, navigate the top window to avoid Stripe frame-ancestors restrictions
       if (window.top) {
-        window.top.location.assign(url);
+        window.top.location.href = url;
         return true;
       } else {
-        // Fallback: try location.assign on current window
-        window.location.assign(url);
+        // Fallback: try location.href on current window
+        window.location.href = url;
         return true;
       }
     } else {
       // Not in iframe, navigate normally
-      window.location.assign(url);
+      window.location.href = url;
       return true;
     }
   } catch (err) {
@@ -62,14 +89,40 @@ export const navigateToCheckout = (url: string): boolean => {
 };
 
 /**
- * Centralized function to start a Stripe checkout session.
- * Called directly in onClick handlers (user-initiated).
- * Returns the checkout URL for fallback rendering if navigation fails.
+ * Starts checkout using the server-side redirect approach.
+ * This is the PREFERRED method as it avoids iframe/popup blocking issues.
+ * 
+ * The redirect endpoint creates the Stripe session and returns a 303 redirect,
+ * which bypasses all client-side navigation restrictions.
+ */
+export const startCheckoutRedirect = (params: CheckoutParams): CheckoutResult => {
+  const redirectUrl = buildCheckoutRedirectUrl(params);
+  console.log('[CHECKOUT] Starting redirect checkout:', { ...params, redirectUrl: redirectUrl.substring(0, 80) + '...' });
+  
+  const navigated = navigateToCheckout(redirectUrl);
+  
+  if (navigated) {
+    return {
+      success: true,
+      url: redirectUrl
+    };
+  } else {
+    return {
+      success: false,
+      fallbackUrl: redirectUrl,
+      error: 'Não foi possível redirecionar automaticamente. Clique no link abaixo.'
+    };
+  }
+};
+
+/**
+ * Legacy checkout method using POST to create-checkout endpoint.
+ * This is kept for backwards compatibility but startCheckoutRedirect is preferred.
  */
 export const startCheckout = async (params: CheckoutParams): Promise<CheckoutResult> => {
   const { attemptId, purchaseType, paymentMethod = 'card' } = params;
 
-  console.log('[CHECKOUT] Starting checkout:', { attemptId, purchaseType, paymentMethod });
+  console.log('[CHECKOUT] Starting checkout via POST:', { attemptId, purchaseType, paymentMethod });
 
   try {
     // Call the edge function to create checkout session

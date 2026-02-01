@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Loader2, Award, Sparkles, AlertCircle, ExternalLink, RefreshCw } from 'lucide-react';
+import { Loader2, Award, Sparkles, AlertCircle, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
-import { startCheckout, CheckoutResult } from '@/lib/checkout';
+import { buildCheckoutRedirectUrl, PurchaseType } from '@/lib/checkout';
 import certificatePreview from '@/assets/certificate-preview.png';
 
 interface BuyCertificateButtonProps {
@@ -17,7 +16,7 @@ interface BuyCertificateButtonProps {
 
 const CERTIFICATE_PRICE = 19.90;
 
-type ButtonState = 'idle' | 'loading' | 'redirecting' | 'error' | 'fallback';
+type ButtonState = 'idle' | 'redirecting' | 'error';
 
 const BuyCertificateButton = ({ 
   attemptId, 
@@ -28,56 +27,31 @@ const BuyCertificateButton = ({
 }: BuyCertificateButtonProps) => {
   const [buttonState, setButtonState] = useState<ButtonState>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [fallbackUrl, setFallbackUrl] = useState<string | null>(null);
-  const { toast } = useToast();
 
-  const handlePurchaseClick = async () => {
+  // Build the server-side redirect URL
+  const redirectUrl = buildCheckoutRedirectUrl({
+    attemptId,
+    purchaseType: 'certificate' as PurchaseType
+  });
+
+  const handleClick = (e: React.MouseEvent) => {
     if (!attemptId) {
+      e.preventDefault();
       console.error('[BUY-CERTIFICATE] No attemptId provided');
       setErrorMessage('ID do teste não encontrado.');
       setButtonState('error');
       return;
     }
     
-    console.log('[BUY-CERTIFICATE] Starting checkout for attempt:', attemptId);
-    setButtonState('loading');
-    setErrorMessage(null);
-    setFallbackUrl(null);
-    
-    // Call centralized checkout function
-    const result: CheckoutResult = await startCheckout({
-      attemptId,
-      purchaseType: 'certificate'
-    });
-
-    if (result.success) {
-      // Navigation initiated successfully
-      setButtonState('redirecting');
-      onPaymentInitiated?.();
-    } else if (result.fallbackUrl) {
-      // Navigation failed but we have the URL for manual click
-      console.log('[BUY-CERTIFICATE] Navigation failed, showing fallback link');
-      setFallbackUrl(result.fallbackUrl);
-      setErrorMessage(result.error || 'Não foi possível redirecionar automaticamente.');
-      setButtonState('fallback');
-    } else {
-      // Complete failure
-      console.error('[BUY-CERTIFICATE] Checkout failed:', result.error);
-      setErrorMessage(result.error || 'Erro ao processar pagamento');
-      setButtonState('error');
-      
-      toast({
-        title: 'Erro ao iniciar pagamento',
-        description: result.error || 'Tente novamente ou entre em contato com o suporte.',
-        variant: 'destructive',
-      });
-    }
+    console.log('[BUY-CERTIFICATE] Initiating checkout redirect for attempt:', attemptId);
+    setButtonState('redirecting');
+    onPaymentInitiated?.();
+    // Navigation happens via anchor href
   };
 
   const handleRetry = () => {
     setButtonState('idle');
     setErrorMessage(null);
-    setFallbackUrl(null);
   };
 
   if (hasCertificate) {
@@ -110,39 +84,6 @@ const BuyCertificateButton = ({
     );
   }
 
-  // Show fallback state with manual link
-  if (buttonState === 'fallback' && fallbackUrl) {
-    return (
-      <Card className={`border-2 border-amber-500/30 bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20 ${className}`}>
-        <CardContent className="p-4 md:p-6 space-y-4">
-          <Alert className="border-warning/50 bg-warning/5">
-            <AlertCircle className="h-4 w-4 text-warning" />
-            <AlertDescription className="ml-2">
-              {errorMessage}
-            </AlertDescription>
-          </Alert>
-          <a
-            href={fallbackUrl}
-            target="_top"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full min-h-[52px] text-base font-semibold bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg rounded-lg text-white px-4 py-3"
-          >
-            <ExternalLink className="h-5 w-5" />
-            Abrir Pagamento do Certificado
-          </a>
-          <Button
-            onClick={handleRetry}
-            variant="ghost"
-            size="sm"
-            className="w-full"
-          >
-            Tentar novamente
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
   // Show error state
   if (buttonState === 'error') {
     return (
@@ -160,7 +101,6 @@ const BuyCertificateButton = ({
             className="w-full"
             size="lg"
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
             Tentar novamente
           </Button>
         </CardContent>
@@ -181,6 +121,15 @@ const BuyCertificateButton = ({
             <p className="text-sm text-muted-foreground mt-2">
               Aguarde, você será direcionado para o checkout seguro.
             </p>
+            <a
+              href={redirectUrl}
+              target="_top"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-primary underline mt-3"
+            >
+              <ExternalLink className="h-3 w-3" />
+              Clique aqui se não for redirecionado
+            </a>
           </div>
         </CardContent>
       </Card>
@@ -237,27 +186,20 @@ const BuyCertificateButton = ({
           </li>
         </ul>
 
-        <Button
-          onClick={handlePurchaseClick}
-          disabled={buttonState === 'loading'}
-          className="w-full min-h-[52px] text-base font-semibold bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
-          size="lg"
+        {/* Use anchor tag for reliable server-side redirect */}
+        <a
+          href={redirectUrl}
+          target="_top"
+          rel="noopener noreferrer"
+          onClick={handleClick}
+          className="flex items-center justify-center w-full min-h-[52px] text-base font-semibold bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg rounded-lg text-white px-4 py-3 no-underline"
         >
-          {buttonState === 'loading' ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              Processando...
-            </>
-          ) : (
-            <>
-              <Award className="h-5 w-5 mr-2" />
-              <span className="flex flex-col sm:flex-row sm:items-center sm:gap-1.5">
-                <span>Quero meu Certificado</span>
-                <span className="text-sm opacity-90">R$ {CERTIFICATE_PRICE.toFixed(2).replace('.', ',')}</span>
-              </span>
-            </>
-          )}
-        </Button>
+          <Award className="h-5 w-5 mr-2" />
+          <span className="flex flex-col sm:flex-row sm:items-center sm:gap-1.5">
+            <span>Quero meu Certificado</span>
+            <span className="text-sm opacity-90">R$ {CERTIFICATE_PRICE.toFixed(2).replace('.', ',')}</span>
+          </span>
+        </a>
       </CardContent>
     </Card>
   );
