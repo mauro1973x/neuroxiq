@@ -180,7 +180,21 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {demoQuizzes.map(quiz => <QuizCard key={quiz.id} quiz={quiz} />)}
+            {demoQuizzes.map(quiz => {
+              // Map test_type to anchor ID
+              const anchorId = 
+                quiz.test_type === 'iq' ? 'teste-qi' :
+                quiz.test_type === 'personality' ? 'teste-personalidade' :
+                quiz.test_type === 'career' ? 'teste-carreira' :
+                quiz.test_type === 'emotional' ? 'teste-inteligencia-emocional' :
+                quiz.test_type === 'political' ? 'teste-politico' : undefined;
+              
+              return (
+                <div key={quiz.id} id={anchorId} className="scroll-mt-24">
+                  <QuizCard quiz={quiz} />
+                </div>
+              );
+            })}
           </div>
 
           <div className="text-center mt-8 md:mt-10">

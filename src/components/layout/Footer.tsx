@@ -1,7 +1,31 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from '@/assets/logo.png';
 
 const Footer = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleTestClick = (e: React.MouseEvent<HTMLAnchorElement>, anchorId: string) => {
+    e.preventDefault();
+    
+    const scrollToSection = () => {
+      const element = document.getElementById(anchorId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.history.replaceState(null, "", `/#${anchorId}`);
+      }
+    };
+
+    // If already on home page, just scroll
+    if (location.pathname === "/") {
+      scrollToSection();
+    } else {
+      // Navigate to home first, then scroll after a short delay
+      navigate("/");
+      setTimeout(scrollToSection, 100);
+    }
+  };
+
   return (
     <footer className="border-t border-border bg-muted/30">
       <div className="container py-10 md:py-12 px-4">
@@ -25,44 +49,49 @@ const Footer = () => {
               <h4 className="font-display font-semibold mb-3 md:mb-4 text-sm md:text-base">Testes</h4>
               <ul className="space-y-2.5 md:space-y-2">
                 <li>
-                  <Link
-                    to="/testes?tipo=iq"
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors block py-1"
+                  <a
+                    href="/#teste-qi"
+                    onClick={(e) => handleTestClick(e, "teste-qi")}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors block py-1 cursor-pointer"
                   >
                     Teste de QI
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link
-                    to="/testes?tipo=personality"
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors block py-1"
+                  <a
+                    href="/#teste-personalidade"
+                    onClick={(e) => handleTestClick(e, "teste-personalidade")}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors block py-1 cursor-pointer"
                   >
                     Personalidade
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link
-                    to="/testes?tipo=career"
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors block py-1"
+                  <a
+                    href="/#teste-carreira"
+                    onClick={(e) => handleTestClick(e, "teste-carreira")}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors block py-1 cursor-pointer"
                   >
                     Carreira
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link
-                    to="/testes?tipo=emotional"
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors block py-1"
+                  <a
+                    href="/#teste-inteligencia-emocional"
+                    onClick={(e) => handleTestClick(e, "teste-inteligencia-emocional")}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors block py-1 cursor-pointer"
                   >
                     Inteligência Emocional
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link
-                    to="/teste-politico"
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors block py-1"
+                  <a
+                    href="/#teste-politico"
+                    onClick={(e) => handleTestClick(e, "teste-politico")}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors block py-1 cursor-pointer"
                   >
                     Orientação Política
-                  </Link>
+                  </a>
                 </li>
               </ul>
             </div>
