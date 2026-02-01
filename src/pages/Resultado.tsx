@@ -165,6 +165,7 @@ const Resultado = () => {
 
   const paymentParam = searchParams.get('payment');
   const sessionId = searchParams.get('session_id');
+  const [isVerifying, setIsVerifying] = useState(false);
 
   // Use the payment polling hook
   const {
@@ -244,6 +245,47 @@ const Resultado = () => {
       setIsLoading(false);
     }
   }, [attemptId, user]);
+
+  // Verify payment on return from Stripe checkout
+  useEffect(() => {
+    const verifyPaymentOnReturn = async () => {
+      if (paymentParam === 'success' && sessionId && user && !attempt?.has_premium_access && !isVerifying) {
+        setIsVerifying(true);
+        console.log('[RESULTADO] Payment return detected, verifying session:', sessionId);
+        
+        try {
+          const { data, error } = await supabase.functions.invoke('verify-session', {
+            body: { sessionId }
+          });
+
+          console.log('[RESULTADO] Verify-session response:', data, error);
+
+          if (data?.verified) {
+            toast({
+              title: 'Pagamento Confirmado!',
+              description: 'Seu relatório premium foi liberado com sucesso.',
+              variant: 'default',
+            });
+            // Clean URL params and refetch
+            navigate(`/resultado/${attemptId}`, { replace: true });
+            fetchAttempt();
+          } else if (!data?.verified && !error) {
+            // Payment not yet confirmed, start polling as fallback
+            console.log('[RESULTADO] Payment not yet confirmed, starting polling');
+            startPolling();
+          }
+        } catch (err) {
+          console.error('[RESULTADO] Verification error:', err);
+          // Start polling as fallback
+          startPolling();
+        } finally {
+          setIsVerifying(false);
+        }
+      }
+    };
+    
+    verifyPaymentOnReturn();
+  }, [paymentParam, sessionId, user, attempt?.has_premium_access, isVerifying, toast, navigate, attemptId, fetchAttempt, startPolling]);
 
   // Refetch when payment is confirmed via polling
   useEffect(() => {

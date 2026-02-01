@@ -69,7 +69,7 @@ const UnlockPremiumButton = ({
 
       if (data?.url) {
         onPaymentInitiated?.();
-        window.open(data.url, '_blank');
+        window.location.href = data.url;
       }
     } catch (error) {
       console.error('[UNLOCK-BUTTON] Error:', error);
