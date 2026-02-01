@@ -29,7 +29,7 @@ const CertificateTemplate = ({
     setIsDownloading(true);
     try {
       const canvas = await html2canvas(certificateRef.current, {
-        scale: 3, // High resolution
+        scale: 3,
         backgroundColor: '#ffffff',
         useCORS: true,
         allowTaint: true,
@@ -86,7 +86,7 @@ const CertificateTemplate = ({
       <div className="overflow-x-auto">
         <div
           ref={certificateRef}
-          className="relative mx-auto bg-white"
+          className="relative mx-auto"
           style={{
             width: '800px',
             height: '566px',
@@ -95,83 +95,170 @@ const CertificateTemplate = ({
             backgroundPosition: 'center',
           }}
         >
-          {/* User Name Overlay */}
+          {/* Title - Certificado de Avaliação Cognitiva */}
           <div 
-            className="absolute text-center"
-            style={{
-              top: '230px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '600px',
-            }}
+            className="absolute text-center w-full"
+            style={{ top: '80px' }}
+          >
+            <h1 
+              className="text-2xl font-bold tracking-wide"
+              style={{ 
+                fontFamily: 'Georgia, serif',
+                color: '#1a365d',
+                textTransform: 'uppercase',
+                letterSpacing: '4px'
+              }}
+            >
+              Certificado de Avaliação Cognitiva
+            </h1>
+          </div>
+
+          {/* Subtitle - Conferido a */}
+          <div 
+            className="absolute text-center w-full"
+            style={{ top: '140px' }}
           >
             <p 
-              className="font-serif text-3xl font-bold text-[#1a365d]"
-              style={{ fontFamily: 'Georgia, serif' }}
+              className="text-sm"
+              style={{ 
+                fontFamily: 'Georgia, serif',
+                color: '#4a5568',
+                fontStyle: 'italic'
+              }}
+            >
+              Conferido a
+            </p>
+          </div>
+
+          {/* Dynamic Field: User Name */}
+          <div 
+            className="absolute text-center w-full px-16"
+            style={{ top: '170px' }}
+          >
+            <p 
+              className="text-3xl font-bold"
+              style={{ 
+                fontFamily: 'Georgia, serif',
+                color: '#1a365d',
+              }}
             >
               {userName}
             </p>
           </div>
 
-          {/* Test Description Overlay */}
+          {/* Dynamic Field: Test Description */}
           <div 
-            className="absolute text-center"
-            style={{
-              top: '290px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '600px',
-            }}
+            className="absolute text-center w-full px-20"
+            style={{ top: '230px' }}
           >
             <p 
-              className="text-sm text-gray-700"
-              style={{ lineHeight: '1.6' }}
+              className="text-sm leading-relaxed"
+              style={{ 
+                color: '#4a5568',
+                fontFamily: 'Georgia, serif',
+              }}
             >
-              concluiu com êxito a Avaliação Cognitiva Online de {testName}
-              <br />
-              desenvolvida pela NEUROX obtendo o seguinte resultado:
+              pela conclusão com êxito da Avaliação Cognitiva Online de
+            </p>
+            <p 
+              className="text-lg font-semibold mt-1"
+              style={{ 
+                fontFamily: 'Georgia, serif',
+                color: '#1a365d',
+              }}
+            >
+              {testName}
+            </p>
+            <p 
+              className="text-sm mt-1"
+              style={{ 
+                color: '#4a5568',
+                fontFamily: 'Georgia, serif',
+              }}
+            >
+              desenvolvida pela NEUROX, obtendo o seguinte resultado:
             </p>
           </div>
 
-          {/* Score Result Overlay */}
+          {/* Dynamic Field: Score Result */}
           <div 
-            className="absolute text-center"
-            style={{
-              top: '360px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '600px',
-            }}
+            className="absolute text-center w-full"
+            style={{ top: '340px' }}
           >
-            <p 
-              className="text-2xl font-bold text-[#1a365d]"
-              style={{ fontFamily: 'Georgia, serif' }}
+            <div 
+              className="inline-block px-8 py-3 rounded-lg"
+              style={{
+                background: 'linear-gradient(135deg, rgba(180, 140, 80, 0.15) 0%, rgba(160, 120, 60, 0.1) 100%)',
+                border: '2px solid rgba(180, 140, 80, 0.3)',
+              }}
             >
-              {scoreLabel}: {scoreValue}
-            </p>
+              <p 
+                className="text-2xl font-bold"
+                style={{ 
+                  fontFamily: 'Georgia, serif',
+                  color: '#1a365d',
+                }}
+              >
+                {scoreLabel}: {scoreValue}
+              </p>
+            </div>
           </div>
 
-          {/* Date Overlay */}
+          {/* Dynamic Field: Date - Bottom Left */}
           <div 
             className="absolute"
             style={{
-              bottom: '60px',
-              left: '60px',
+              bottom: '80px',
+              left: '80px',
             }}
           >
-            <p className="text-sm text-gray-600">{issuedDate}</p>
+            <p 
+              className="text-xs"
+              style={{ color: '#4a5568' }}
+            >
+              Data de Emissão
+            </p>
+            <p 
+              className="text-sm font-medium"
+              style={{ color: '#1a365d' }}
+            >
+              {issuedDate}
+            </p>
           </div>
 
-          {/* Validation Code Overlay */}
+          {/* Dynamic Field: Validation Code - Bottom Right */}
           <div 
             className="absolute text-right"
             style={{
-              bottom: '45px',
-              right: '60px',
+              bottom: '80px',
+              right: '80px',
             }}
           >
-            <p className="text-sm font-bold text-[#1a365d]">NEUROX - Avaliações Cognitivas Digitais</p>
-            <p className="text-xs text-gray-600">Código de validação: {validationCode}</p>
+            <p 
+              className="text-xs"
+              style={{ color: '#4a5568' }}
+            >
+              Código de Validação
+            </p>
+            <p 
+              className="text-sm font-bold"
+              style={{ color: '#1a365d' }}
+            >
+              {validationCode}
+            </p>
+          </div>
+
+          {/* Institution Footer */}
+          <div 
+            className="absolute text-center w-full"
+            style={{ bottom: '40px' }}
+          >
+            <p 
+              className="text-xs"
+              style={{ color: '#718096' }}
+            >
+              NEUROX - Avaliações Cognitivas Digitais • neurox.app
+            </p>
           </div>
         </div>
       </div>
