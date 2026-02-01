@@ -61,127 +61,98 @@ serve(async (req) => {
     });
     logStep("Stripe session retrieved", { 
       status: session.status, 
-      paymentStatus: session.payment_status 
+      paymentStatus: session.payment_status,
+      livemode: session.livemode
     });
 
     // Verify the session belongs to this user via metadata
     const metadataUserId = session.metadata?.user_id;
     const attemptId = session.metadata?.attempt_id;
-    const purchaseType = session.metadata?.purchase_type || 'premium_report';
 
     if (metadataUserId !== user.id) {
       logStep("User mismatch", { metadataUserId, currentUserId: user.id });
       throw new Error("Session does not belong to this user");
     }
 
-    // Check if payment is successful
-    if (session.payment_status !== 'paid') {
-      logStep("Payment not completed", { paymentStatus: session.payment_status });
-      return new Response(JSON.stringify({ 
-        verified: false, 
-        status: session.payment_status,
-        message: "Payment not yet completed"
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
-
-    logStep("Payment verified as paid, processing unlock", { attemptId, purchaseType });
-
-    // Get payment intent ID
-    const paymentIntentId = typeof session.payment_intent === 'string' 
-      ? session.payment_intent 
-      : session.payment_intent?.id;
-
-    // Idempotency check - see if already processed
-    const { data: existingPurchase } = await supabaseAdmin
-      .from('premium_purchases')
-      .select('payment_status')
-      .eq('stripe_checkout_session_id', sessionId)
+    // SECURITY: Check the database for ACTUAL payment status
+    // This is the ONLY source of truth - only the webhook can set has_premium_access=true
+    const { data: attemptData, error: attemptError } = await supabaseAdmin
+      .from('test_attempts')
+      .select('has_premium_access, has_certificate, payment_status')
+      .eq('id', attemptId)
+      .eq('user_id', user.id)
       .single();
 
-    if (existingPurchase?.payment_status === 'approved') {
-      logStep("Already processed, returning success");
+    if (attemptError) {
+      logStep("Failed to fetch attempt", { error: attemptError.message });
+      throw new Error("Failed to verify payment status");
+    }
+
+    // Check if already unlocked via webhook
+    if (attemptData?.has_premium_access === true && attemptData?.payment_status === 'approved') {
+      logStep("Content already unlocked via webhook", { attemptId });
       return new Response(JSON.stringify({ 
         verified: true,
         alreadyProcessed: true,
         attemptId,
-        message: "Payment already processed"
+        message: "Payment confirmed and access granted"
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     }
 
-    // Update purchase record
-    const { error: purchaseError } = await supabaseAdmin
-      .from('premium_purchases')
-      .update({
-        payment_status: 'approved',
-        stripe_payment_intent_id: paymentIntentId,
-      })
-      .eq('stripe_checkout_session_id', sessionId);
-
-    if (purchaseError) {
-      logStep("Warning: Failed to update purchase", { error: purchaseError.message });
-    }
-
-    // Build update data for test attempt
-    const updateFields: { [key: string]: unknown } = {
-      payment_status: 'approved',
-      purchased_at: new Date().toISOString(),
-      premium_unlocked_at: new Date().toISOString(),
-    };
-
-    if (purchaseType === 'premium_report' || purchaseType === 'bundle') {
-      updateFields.has_premium_access = true;
-    }
-    if (purchaseType === 'certificate' || purchaseType === 'bundle') {
-      // Generate unique validation code for certificate
-      const validationCode = 'NX-' + [...Array(10)].map(() => 
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 36)]
-      ).join('');
-      
-      updateFields.has_certificate = true;
-      updateFields.certificate_payment_status = 'paid';
-      updateFields.certificate_issued_at = new Date().toISOString();
-      updateFields.validation_code = validationCode;
-      updateFields.stripe_certificate_session_id = sessionId;
-    }
-
-    const { error: attemptError } = await supabaseAdmin
-      .from('test_attempts')
-      .update(updateFields)
-      .eq('id', attemptId)
-      .eq('user_id', user.id);
-
-    if (attemptError) {
-      logStep("Failed to update attempt", { error: attemptError.message });
-      throw new Error(`Failed to unlock premium: ${attemptError.message}`);
-    }
-
-    // Log the event for audit
-    await supabaseAdmin
-      .from('payment_events')
-      .insert({
-        stripe_event_id: `verify_${sessionId}_${Date.now()}`,
-        event_type: 'session_verified',
-        checkout_session_id: sessionId,
-        payment_intent_id: paymentIntentId,
-        user_id: user.id,
-        attempt_id: attemptId,
-        payload_summary: { source: 'verify-session', purchaseType },
-        processed: true,
-        processed_at: new Date().toISOString(),
+    // SECURITY: Do NOT unlock content here
+    // This endpoint only READS status, it does NOT grant access
+    // Access is ONLY granted by the webhook after verifying payment
+    
+    if (session.payment_status === 'paid') {
+      // Payment shows as paid in Stripe, but database not yet updated
+      // This means webhook hasn't processed yet - tell frontend to wait
+      logStep("Stripe shows paid but DB not updated - webhook pending", { 
+        attemptId, 
+        stripePaymentStatus: session.payment_status,
+        dbPaymentStatus: attemptData?.payment_status,
+        dbHasPremium: attemptData?.has_premium_access
       });
 
-    logStep("Premium access granted successfully");
+      // Log this verification attempt for debugging
+      await supabaseAdmin
+        .from('payment_events')
+        .insert({
+          stripe_event_id: `verify_check_${sessionId}_${Date.now()}`,
+          event_type: 'session_verification_check',
+          checkout_session_id: sessionId,
+          user_id: user.id,
+          attempt_id: attemptId,
+          payload_summary: { 
+            source: 'verify-session',
+            stripeStatus: session.payment_status,
+            dbStatus: attemptData?.payment_status,
+            livemode: session.livemode,
+            action: 'waiting_for_webhook'
+          },
+          processed: true,
+          processed_at: new Date().toISOString(),
+        });
 
+      return new Response(JSON.stringify({ 
+        verified: false,
+        status: 'pending',
+        message: "Pagamento processando. Aguarde a confirmação via webhook.",
+        attemptId
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Payment not yet complete according to Stripe
+    logStep("Payment not completed", { paymentStatus: session.payment_status });
     return new Response(JSON.stringify({ 
-      verified: true,
-      attemptId,
-      message: "Payment verified and premium access granted"
+      verified: false, 
+      status: session.payment_status,
+      message: "Payment not yet completed"
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

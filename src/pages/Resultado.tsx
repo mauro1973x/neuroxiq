@@ -246,46 +246,22 @@ const Resultado = () => {
     }
   }, [attemptId, user]);
 
-  // Verify payment on return from Stripe checkout
+  // On payment return, start polling the DATABASE for confirmation
+  // SECURITY: verify-session NO LONGER unlocks content - only checks status
+  // The webhook is the ONLY source of truth for unlocking content
   useEffect(() => {
-    const verifyPaymentOnReturn = async () => {
-      if (paymentParam === 'success' && sessionId && user && !attempt?.has_premium_access && !isVerifying) {
-        setIsVerifying(true);
-        console.log('[RESULTADO] Payment return detected, verifying session:', sessionId);
-        
-        try {
-          const { data, error } = await supabase.functions.invoke('verify-session', {
-            body: { sessionId }
-          });
-
-          console.log('[RESULTADO] Verify-session response:', data, error);
-
-          if (data?.verified) {
-            toast({
-              title: 'Pagamento Confirmado!',
-              description: 'Seu relatório premium foi liberado com sucesso.',
-              variant: 'default',
-            });
-            // Clean URL params and refetch
-            navigate(`/resultado/${attemptId}`, { replace: true });
-            fetchAttempt();
-          } else if (!data?.verified && !error) {
-            // Payment not yet confirmed, start polling as fallback
-            console.log('[RESULTADO] Payment not yet confirmed, starting polling');
-            startPolling();
-          }
-        } catch (err) {
-          console.error('[RESULTADO] Verification error:', err);
-          // Start polling as fallback
-          startPolling();
-        } finally {
-          setIsVerifying(false);
-        }
-      }
-    };
-    
-    verifyPaymentOnReturn();
-  }, [paymentParam, sessionId, user, attempt?.has_premium_access, isVerifying, toast, navigate, attemptId, fetchAttempt, startPolling]);
+    if (paymentParam === 'success' && sessionId && user && !attempt?.has_premium_access && !isVerifying) {
+      setIsVerifying(true);
+      console.log('[RESULTADO] Payment return detected, starting database polling');
+      
+      // Clean URL params
+      navigate(`/resultado/${attemptId}`, { replace: true });
+      
+      // Start polling the database for webhook confirmation
+      startPolling();
+      setIsVerifying(false);
+    }
+  }, [paymentParam, sessionId, user, attempt?.has_premium_access, isVerifying, navigate, attemptId, startPolling]);
 
   // Refetch when payment is confirmed via polling
   useEffect(() => {
@@ -445,7 +421,9 @@ const Resultado = () => {
   }
 
   const score = attempt.total_score || 0;
-  const hasPremiumAccess = attempt.has_premium_access || paymentConfirmed;
+  // SECURITY: Premium access MUST come from database only (set by webhook)
+  // Never grant access based on frontend state like paymentConfirmed
+  const hasPremiumAccess = attempt.has_premium_access === true;
   const config = getTestConfig(testType);
   const Icon = config.icon;
   const percentage = Math.round((score / config.maxScore) * 100);
