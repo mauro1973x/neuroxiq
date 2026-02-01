@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2, AlertCircle, Award, Lock, CheckCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import CertificateTemplate from '@/components/quiz/CertificateTemplate';
 import BuyCertificateButton from '@/components/quiz/BuyCertificateButton';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -37,6 +38,7 @@ const Certificado = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
 
   const [attempt, setAttempt] = useState<CertificateData | null>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -44,10 +46,12 @@ const Certificado = () => {
   const [error, setError] = useState<string | null>(null);
   const [isPolling, setIsPolling] = useState(false);
   const [pollingCount, setPollingCount] = useState(0);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const paymentParam = searchParams.get('payment');
+  const sessionId = searchParams.get('session_id');
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!attemptId || !user) return;
 
     console.log('[CERTIFICADO] Fetching data for attempt:', attemptId);
@@ -64,7 +68,12 @@ const Certificado = () => {
       if (attemptError) throw attemptError;
       if (!attemptData) throw new Error('Resultado não encontrado');
 
-      console.log('[CERTIFICADO] Attempt data:', attemptData);
+      console.log('[CERTIFICADO] Attempt data:', {
+        id: attemptData.id,
+        has_certificate: attemptData.has_certificate,
+        certificate_payment_status: attemptData.certificate_payment_status,
+        validation_code: attemptData.validation_code
+      });
       setAttempt(attemptData as CertificateData);
 
       // Fetch user profile
@@ -83,21 +92,86 @@ const Certificado = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [attemptId, user]);
 
-  // Polling for payment confirmation
+  // STEP 4: Verify payment session on return from Stripe
+  const verifyPaymentSession = useCallback(async () => {
+    if (!sessionId || !user || !attemptId || isVerifying) return;
+    
+    // Only verify if certificate is not already unlocked
+    if (attempt?.certificate_payment_status === 'paid') {
+      console.log('[CERTIFICADO] Certificate already paid, skipping verification');
+      return;
+    }
+
+    console.log('[CERTIFICADO] Verifying payment session:', sessionId);
+    setIsVerifying(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-session', {
+        body: { sessionId }
+      });
+
+      console.log('[CERTIFICADO] Verification response:', data);
+
+      if (error) {
+        console.error('[CERTIFICADO] Verification error:', error);
+        // Fall back to polling
+        setIsPolling(true);
+        return;
+      }
+
+      if (data?.verified) {
+        console.log('[CERTIFICADO] Payment verified successfully!');
+        toast({
+          title: '🎉 Pagamento Confirmado!',
+          description: 'Seu certificado foi gerado com sucesso.',
+        });
+        
+        // Clear URL params and refetch data
+        navigate(`/certificado/${attemptId}`, { replace: true });
+        await fetchData();
+      } else if (data?.status === 'unpaid') {
+        console.log('[CERTIFICADO] Payment not completed yet, starting polling');
+        setIsPolling(true);
+      }
+    } catch (err) {
+      console.error('[CERTIFICADO] Verification failed:', err);
+      // Fall back to polling
+      setIsPolling(true);
+    } finally {
+      setIsVerifying(false);
+    }
+  }, [sessionId, user, attemptId, attempt?.certificate_payment_status, isVerifying, navigate, fetchData, toast]);
+
+  // Trigger verification when returning from payment
   useEffect(() => {
-    if (!attempt || attempt.has_certificate) return;
-    if (paymentParam !== 'success') return;
+    if (paymentParam === 'success' && sessionId && user && !isVerifying && attempt !== null) {
+      // Only verify if certificate is not already unlocked
+      if (attempt.certificate_payment_status !== 'paid') {
+        verifyPaymentSession();
+      }
+    }
+  }, [paymentParam, sessionId, user, attempt, isVerifying, verifyPaymentSession]);
+
+  // Polling for payment confirmation (fallback if verify-session fails)
+  useEffect(() => {
+    if (!isPolling || !attemptId) return;
+    // Stop polling if certificate is already unlocked
+    if (attempt?.certificate_payment_status === 'paid') {
+      setIsPolling(false);
+      return;
+    }
 
     const pollPayment = async () => {
       if (pollingCount >= 25) {
+        console.log('[CERTIFICADO] Polling limit reached');
         setIsPolling(false);
         return;
       }
 
-      setIsPolling(true);
       setPollingCount(prev => prev + 1);
+      console.log('[CERTIFICADO] Polling attempt:', pollingCount + 1);
 
       const { data } = await supabase
         .from('test_attempts')
@@ -105,9 +179,20 @@ const Certificado = () => {
         .eq('id', attemptId)
         .single();
 
-      if (data?.has_certificate) {
+      console.log('[CERTIFICADO] Poll result:', {
+        has_certificate: data?.has_certificate,
+        certificate_payment_status: data?.certificate_payment_status
+      });
+
+      // CRITICAL: Check certificate_payment_status, not just has_certificate
+      if (data?.certificate_payment_status === 'paid') {
+        console.log('[CERTIFICADO] Certificate unlocked via polling!');
         setAttempt(prev => prev ? { ...prev, ...data } : null);
         setIsPolling(false);
+        toast({
+          title: '🎉 Certificado Liberado!',
+          description: 'Seu certificado está pronto.',
+        });
         return;
       }
 
@@ -115,7 +200,7 @@ const Certificado = () => {
     };
 
     pollPayment();
-  }, [attemptId, attempt?.has_certificate, paymentParam, pollingCount]);
+  }, [isPolling, attemptId, attempt?.certificate_payment_status, pollingCount, toast]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -123,10 +208,10 @@ const Certificado = () => {
       return;
     }
 
-    if (user) {
+    if (user && attemptId) {
       fetchData();
     }
-  }, [user, authLoading, navigate, attemptId]);
+  }, [user, authLoading, navigate, attemptId, fetchData]);
 
   if (authLoading || isLoading) {
     return (
@@ -170,19 +255,25 @@ const Certificado = () => {
     : format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
   const validationCode = attempt.validation_code || 'NX-PENDING';
 
-  const hasCertificate = attempt.has_certificate;
+  // CRITICAL: Check certificate_payment_status === 'paid', NOT just has_certificate
+  const hasCertificate = attempt.certificate_payment_status === 'paid';
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1 container py-8 md:py-12 px-4">
-        {/* Polling Status */}
-        {isPolling && (
+        {/* Verification/Polling Status */}
+        {(isVerifying || isPolling) && (
           <Alert className="mb-6 max-w-2xl mx-auto border-primary/50 bg-primary/5">
             <RefreshCw className="h-4 w-4 animate-spin text-primary" />
-            <AlertTitle className="text-primary">Confirmando pagamento...</AlertTitle>
+            <AlertTitle className="text-primary">
+              {isVerifying ? 'Verificando pagamento...' : 'Confirmando pagamento...'}
+            </AlertTitle>
             <AlertDescription>
-              Aguarde enquanto verificamos seu pagamento. Tentativa {pollingCount}/25
+              {isVerifying 
+                ? 'Consultando status do pagamento no Stripe...'
+                : `Aguarde enquanto verificamos seu pagamento. Tentativa ${pollingCount}/25`
+              }
             </AlertDescription>
           </Alert>
         )}
