@@ -61,15 +61,13 @@ const ValidarCertificado = () => {
         setCertificateData(attemptData as ValidationData);
         setIsValid(true);
 
-        // Get user name from profile (public read for validation)
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('user_id', attemptData.user_id)
-          .single();
+        // Get certificate holder name via secure function
+        // This function validates the certificate and returns only the name
+        const { data: holderName, error: holderError } = await supabase
+          .rpc('get_certificate_holder_name', { p_validation_code: validationCode.toUpperCase() });
 
-        if (profileData?.full_name) {
-          setUserName(profileData.full_name);
+        if (!holderError && holderName) {
+          setUserName(holderName);
         }
       } catch (err) {
         console.error('[VALIDAR] Error:', err);

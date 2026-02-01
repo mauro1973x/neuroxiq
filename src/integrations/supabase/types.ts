@@ -1099,6 +1099,10 @@ export type Database = {
         }[]
       }
       generate_validation_code: { Args: never; Returns: string }
+      get_certificate_holder_name: {
+        Args: { p_validation_code: string }
+        Returns: string
+      }
       get_premium_result_band: {
         Args: { p_attempt_id: string }
         Returns: {
