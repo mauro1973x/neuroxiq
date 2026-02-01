@@ -46,6 +46,15 @@ const UnlockPremiumButton = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const isEmbeddedInIframe = () => {
+    try {
+      return window.self !== window.top;
+    } catch {
+      // If cross-origin access blocks, assume we are embedded
+      return true;
+    }
+  };
+
   const handleUnlockClick = async () => {
     if (!attemptId) {
       console.error('[UNLOCK-BUTTON] No attemptId provided');
@@ -57,6 +66,20 @@ const UnlockPremiumButton = ({
     console.log('[UNLOCK-BUTTON] Starting checkout for attempt:', attemptId, 'testType:', testType);
     setButtonState('loading');
     setErrorMessage(null);
+
+    // IMPORTANT: In the Lovable preview, the app runs inside an iframe.
+    // Stripe Checkout cannot be rendered inside iframes (frame-ancestors restrictions),
+    // which results in a blank page if we navigate the iframe to checkout.stripe.com.
+    // So, when embedded, we open the checkout in a new tab.
+    const embedded = isEmbeddedInIframe();
+    const checkoutWindow: Window | null = embedded ? window.open('about:blank', '_blank') : null;
+    if (checkoutWindow) {
+      try {
+        checkoutWindow.opener = null;
+      } catch {
+        // ignore
+      }
+    }
     
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
@@ -92,11 +115,21 @@ const UnlockPremiumButton = ({
       setButtonState('redirecting');
       onPaymentInitiated?.();
 
-      // Use window.location.assign for external URL redirect (NOT router.push)
-      // Small delay to ensure UI feedback is visible
-      setTimeout(() => {
-        window.location.assign(data.url);
-      }, 100);
+      // Redirect to Stripe Checkout WITHOUT router.push.
+      // If embedded, use the new tab (prevents blank screen in iframe).
+      if (checkoutWindow) {
+        checkoutWindow.location.href = data.url;
+        toast({
+          title: 'Pagamento aberto',
+          description: 'O checkout foi aberto em uma nova aba para evitar bloqueio no preview.',
+          variant: 'default',
+        });
+        // Keep the current page usable (no infinite "redirecting" state)
+        setButtonState('idle');
+        return;
+      }
+
+      window.location.assign(data.url);
 
     } catch (error) {
       console.error('[UNLOCK-BUTTON] Error:', error);
