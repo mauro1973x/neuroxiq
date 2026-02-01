@@ -1,9 +1,9 @@
-import { Heart, Download, Target, Lightbulb, Users, Globe, AlertTriangle, FileText, Award, TrendingUp, Brain, Sparkles, Shield } from 'lucide-react';
+import { Heart, Target, Lightbulb, Users, Globe, AlertTriangle, FileText, Award, TrendingUp, Brain, Sparkles, Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { EmotionalResultBand } from '@/data/emotionalQuestions';
+import DownloadPdfButton from './DownloadPdfButton';
 
 type EmotionalCategory = 'self-awareness' | 'self-regulation' | 'motivation' | 'empathy' | 'social-skills';
 
@@ -153,14 +153,15 @@ const PremiumEmotionalReport = ({
     year: 'numeric',
   });
 
-  const handleDownloadPDF = () => {
-    console.log('Download PDF');
-  };
+  // Build recommendations from all categories
+  const allRecommendations = categoryData.flatMap(item => 
+    getCategoryRecommendations(item.category, item.percentage).slice(0, 1)
+  );
 
   const eqInfo = getEQDescription(estimatedEQ);
 
   return (
-    <div className="space-y-6 print:space-y-4">
+    <div className="space-y-6 print:space-y-4 pb-24 md:pb-8">
       {/* Header */}
       <Card className="glass-card overflow-hidden">
         <div className="bg-gradient-to-r from-rose-500 via-pink-500 to-red-500 text-white p-6">
@@ -174,15 +175,23 @@ const PremiumEmotionalReport = ({
                 <p className="opacity-90">Avaliação de Competências Emocionais – Modelo Goleman</p>
               </div>
             </div>
-            <Button 
-              variant="secondary" 
-              size="sm" 
-              className="print:hidden"
-              onClick={handleDownloadPDF}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Baixar PDF
-            </Button>
+            <DownloadPdfButton
+              variant="header"
+              testType="emotional"
+              testName="Inteligência Emocional"
+              score={totalScore}
+              maxScore={maxPossibleScore}
+              resultBandName={resultBand.name}
+              description={resultBand.premiumDescription}
+              strengths={resultBand.strengths}
+              challenges={resultBand.challenges}
+              recommendations={allRecommendations}
+              careerAreas={resultBand.careerAreas}
+              additionalInfo={{
+                'QE Estimado': `~${estimatedEQ}`,
+                'Faixa Percentil': resultBand.percentileRange,
+              }}
+            />
           </div>
         </div>
 
@@ -481,6 +490,25 @@ const PremiumEmotionalReport = ({
         <p>Relatório gerado automaticamente pela plataforma NEUROX.</p>
         <p className="mt-1">Data de geração: {formattedDate}</p>
       </div>
+
+      {/* Mobile Sticky Download Button */}
+      <DownloadPdfButton
+        variant="sticky"
+        testType="emotional"
+        testName="Inteligência Emocional"
+        score={totalScore}
+        maxScore={maxPossibleScore}
+        resultBandName={resultBand.name}
+        description={resultBand.premiumDescription}
+        strengths={resultBand.strengths}
+        challenges={resultBand.challenges}
+        recommendations={allRecommendations}
+        careerAreas={resultBand.careerAreas}
+        additionalInfo={{
+          'QE Estimado': `~${estimatedEQ}`,
+          'Faixa Percentil': resultBand.percentileRange,
+        }}
+      />
     </div>
   );
 };

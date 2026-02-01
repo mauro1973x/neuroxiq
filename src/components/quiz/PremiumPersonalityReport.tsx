@@ -1,6 +1,5 @@
-import { User, Download, Target, Lightbulb, Users, Globe, AlertTriangle, FileText, Award, TrendingUp, Sparkles } from 'lucide-react';
+import { User, Target, Lightbulb, Users, Globe, AlertTriangle, FileText, Award, TrendingUp, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { 
@@ -9,6 +8,7 @@ import {
   categoryLabels, 
   categoryDescriptions 
 } from '@/data/personalityQuestions';
+import DownloadPdfButton from './DownloadPdfButton';
 
 interface CategoryScore {
   category: PersonalityCategory;
@@ -160,15 +160,16 @@ const PremiumPersonalityReport = ({
     year: 'numeric',
   });
 
-  const handleDownloadPDF = () => {
-    console.log('Download PDF');
-  };
+  // Get strengths from trait descriptions
+  const traitDescriptions = categoryData.slice(0, 3).map(item => 
+    getTraitDescription(item.category, item.percentage).description
+  );
 
   const careerRecommendations = getCareerRecommendations(dominantTraits);
   const relationshipInsights = getRelationshipInsights(categoryScores);
 
   return (
-    <div className="space-y-6 print:space-y-4">
+    <div className="space-y-6 print:space-y-4 pb-24 md:pb-8">
       {/* Header */}
       <Card className="glass-card overflow-hidden">
         <div className="bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 text-white p-6">
@@ -182,15 +183,21 @@ const PremiumPersonalityReport = ({
                 <p className="opacity-90">Avaliação Big Five (OCEAN) – Modelo Científico</p>
               </div>
             </div>
-            <Button 
-              variant="secondary" 
-              size="sm" 
-              className="print:hidden"
-              onClick={handleDownloadPDF}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Baixar PDF
-            </Button>
+            <DownloadPdfButton
+              variant="header"
+              testType="personality"
+              testName="Personalidade Big Five"
+              score={totalScore}
+              maxScore={maxPossibleScore}
+              resultBandName={`Perfil ${dominantTraits.map(t => categoryConfig[t].letter).join('')}`}
+              description={resultBand.premiumDescription}
+              strengths={traitDescriptions}
+              recommendations={relationshipInsights.map(i => i.tip)}
+              careerAreas={careerRecommendations}
+              additionalInfo={{
+                'Perfil OCEAN': dominantTraits.map(t => categoryConfig[t].letter).join(''),
+              }}
+            />
           </div>
         </div>
 
@@ -456,6 +463,23 @@ const PremiumPersonalityReport = ({
         <p>Relatório gerado automaticamente pela plataforma NEUROX.</p>
         <p className="mt-1">Data de geração: {formattedDate}</p>
       </div>
+
+      {/* Mobile Sticky Download Button */}
+      <DownloadPdfButton
+        variant="sticky"
+        testType="personality"
+        testName="Personalidade Big Five"
+        score={totalScore}
+        maxScore={maxPossibleScore}
+        resultBandName={`Perfil ${dominantTraits.map(t => categoryConfig[t].letter).join('')}`}
+        description={resultBand.premiumDescription}
+        strengths={traitDescriptions}
+        recommendations={relationshipInsights.map(i => i.tip)}
+        careerAreas={careerRecommendations}
+        additionalInfo={{
+          'Perfil OCEAN': dominantTraits.map(t => categoryConfig[t].letter).join(''),
+        }}
+      />
     </div>
   );
 };

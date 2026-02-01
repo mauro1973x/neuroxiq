@@ -1,8 +1,8 @@
-import { Award, Download, Brain, Target, Lightbulb, Users, Globe, AlertTriangle, FileText } from 'lucide-react';
+import { Award, Brain, Target, Lightbulb, Users, Globe, AlertTriangle, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { IQResultBand } from '@/data/iqQuestions';
+import DownloadPdfButton from './DownloadPdfButton';
 
 interface PremiumReportProps {
   score: number;
@@ -73,13 +73,13 @@ const PremiumReport = ({ score, totalQuestions, resultBand, userName = 'Usuário
     year: 'numeric',
   });
 
-  const handleDownloadPDF = () => {
-    // TODO: Implement PDF generation
-    console.log('Download PDF');
-  };
+  const strengths = getStrengths();
+  const challenges = getChallenges();
+  const recommendations = getRecommendations();
+  const careerAreas = getCareerAreas();
 
   return (
-    <div className="space-y-6 print:space-y-4">
+    <div className="space-y-6 print:space-y-4 pb-24 md:pb-8">
       {/* Header */}
       <Card className="glass-card overflow-hidden">
         <div className="bg-gradient-to-r from-primary via-primary/90 to-accent text-primary-foreground p-6">
@@ -93,15 +93,23 @@ const PremiumReport = ({ score, totalQuestions, resultBand, userName = 'Usuário
                 <p className="opacity-90">Avaliação Cognitiva Padronizada – Uso Educacional</p>
               </div>
             </div>
-            <Button 
-              variant="secondary" 
-              size="sm" 
-              className="print:hidden"
-              onClick={handleDownloadPDF}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Baixar PDF
-            </Button>
+            <DownloadPdfButton
+              variant="header"
+              testType="iq"
+              testName="Teste de QI"
+              score={score}
+              maxScore={totalQuestions}
+              resultBandName={resultBand.name}
+              description={resultBand.premiumDescription}
+              strengths={strengths}
+              challenges={challenges}
+              recommendations={recommendations}
+              careerAreas={careerAreas}
+              additionalInfo={{
+                'QI Estimado': `~${estimatedIQ}`,
+                'Percentil': `Top ${100 - percentileRank}%`,
+              }}
+            />
           </div>
         </div>
 
@@ -329,6 +337,25 @@ const PremiumReport = ({ score, totalQuestions, resultBand, userName = 'Usuário
         <p>Relatório gerado automaticamente pela plataforma NEUROX.</p>
         <p className="mt-1">Data de geração: {formattedDate}</p>
       </div>
+
+      {/* Mobile Sticky Download Button */}
+      <DownloadPdfButton
+        variant="sticky"
+        testType="iq"
+        testName="Teste de QI"
+        score={score}
+        maxScore={totalQuestions}
+        resultBandName={resultBand.name}
+        description={resultBand.premiumDescription}
+        strengths={strengths}
+        challenges={challenges}
+        recommendations={recommendations}
+        careerAreas={careerAreas}
+        additionalInfo={{
+          'QI Estimado': `~${estimatedIQ}`,
+          'Percentil': `Top ${100 - percentileRank}%`,
+        }}
+      />
     </div>
   );
 };
