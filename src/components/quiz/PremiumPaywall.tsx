@@ -88,21 +88,21 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
 
   return (
     <Card className="border-2 border-accent/50 bg-gradient-to-br from-accent/5 to-background overflow-hidden">
-      <CardHeader className="text-center pb-4">
+      <CardHeader className="text-center pb-4 px-4 md:px-6">
         <div className="flex justify-center mb-3">
-          <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-accent to-accent/80 flex items-center justify-center">
-            <Lock className="h-7 w-7 text-accent-foreground" />
+          <div className="h-12 w-12 md:h-14 md:w-14 rounded-xl bg-gradient-to-br from-accent to-accent/80 flex items-center justify-center">
+            <Lock className="h-6 w-6 md:h-7 md:w-7 text-accent-foreground" />
           </div>
         </div>
-        <CardTitle className="text-xl font-display">Desbloqueie Seu Potencial</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-lg md:text-xl font-display">Desbloqueie Seu Potencial</CardTitle>
+        <CardDescription className="text-sm md:text-base">
           Acesse análises detalhadas e recomendações personalizadas
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-6">
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <CardContent className="space-y-5 md:space-y-6 px-4 md:px-6">
+        {/* Products - Stack on mobile, grid on desktop */}
+        <div className="flex flex-col md:grid md:grid-cols-3 gap-4">
           {products.map((product) => (
             <div
               key={product.id}
@@ -115,21 +115,21 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
               }`}
             >
               {product.isBest && (
-                <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground">
+                <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-xs">
                   Melhor Valor
                 </Badge>
               )}
               {product.popular && !product.isBest && (
-                <Badge variant="secondary" className="absolute -top-2 left-1/2 -translate-x-1/2">
+                <Badge variant="secondary" className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-xs">
                   Mais Popular
                 </Badge>
               )}
 
               <div className="text-center mb-4 pt-2">
-                <h3 className="font-semibold text-lg">{product.name}</h3>
+                <h3 className="font-semibold text-base md:text-lg">{product.name}</h3>
                 <p className="text-sm text-muted-foreground">{product.description}</p>
                 <div className="mt-2">
-                  <span className="text-2xl font-bold text-primary">{product.price}</span>
+                  <span className="text-2xl md:text-2xl font-bold text-primary">{product.price}</span>
                 </div>
               </div>
 
@@ -137,30 +137,29 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
                 {product.features.map((feature, idx) => (
                   <li key={idx} className="flex items-start gap-2">
                     <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
-                    <span className="text-muted-foreground">{feature}</span>
+                    <span className="text-muted-foreground leading-relaxed">{feature}</span>
                   </li>
                 ))}
               </ul>
 
               {/* Payment Tabs */}
               <Tabs defaultValue="card" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 h-9">
-                  <TabsTrigger value="card" className="text-xs">
-                    <CreditCard className="h-3 w-3 mr-1" />
+                <TabsList className="grid w-full grid-cols-2 h-10">
+                  <TabsTrigger value="card" className="text-sm">
+                    <CreditCard className="h-4 w-4 mr-1.5" />
                     Cartão
                   </TabsTrigger>
-                  <TabsTrigger value="pix" className="text-xs">
-                    <QrCode className="h-3 w-3 mr-1" />
+                  <TabsTrigger value="pix" className="text-sm">
+                    <QrCode className="h-4 w-4 mr-1.5" />
                     PIX
                   </TabsTrigger>
                 </TabsList>
-                <TabsContent value="card" className="mt-2">
+                <TabsContent value="card" className="mt-3">
                   <Button
                     onClick={() => handleCheckout(product.id as 'premium_report' | 'certificate' | 'bundle', 'card')}
                     disabled={isLoading !== null}
-                    className="w-full"
+                    className="w-full min-h-[48px] text-base"
                     variant={product.isBest ? 'premium' : 'default'}
-                    size="sm"
                   >
                     {isLoading === `${product.id}-card` ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -172,13 +171,12 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
                     )}
                   </Button>
                 </TabsContent>
-                <TabsContent value="pix" className="mt-2">
+                <TabsContent value="pix" className="mt-3">
                   <Button
                     onClick={() => handleCheckout(product.id as 'premium_report' | 'certificate' | 'bundle', 'pix')}
                     disabled={isLoading !== null}
-                    className="w-full"
+                    className="w-full min-h-[48px] text-base"
                     variant="outline"
-                    size="sm"
                   >
                     {isLoading === `${product.id}-pix` ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -196,9 +194,9 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
         </div>
 
         {/* Security Notice */}
-        <div className="text-center text-xs text-muted-foreground">
+        <div className="text-center text-xs md:text-sm text-muted-foreground space-y-1">
           <p>🔒 Pagamento seguro processado pelo Stripe</p>
-          <p className="mt-1">Aceitamos todos os cartões de crédito e débito</p>
+          <p>Aceitamos todos os cartões de crédito e débito</p>
         </div>
       </CardContent>
     </Card>

@@ -13,26 +13,26 @@ const PaymentCancel = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className="flex-1 container py-12 flex items-center justify-center">
+      <main className="flex-1 container py-8 md:py-12 px-4 flex items-center justify-center">
         <div className="max-w-md w-full text-center">
-          <div className="h-20 w-20 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-            <XCircle className="h-12 w-12 text-red-600" />
+          <div className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+            <XCircle className="h-8 w-8 md:h-12 md:w-12 text-destructive" />
           </div>
-          <h2 className="text-2xl font-bold text-red-600 mb-2">Pagamento Cancelado</h2>
-          <p className="text-muted-foreground mb-6">
+          <h2 className="text-xl md:text-2xl font-bold text-destructive mb-2">Pagamento Cancelado</h2>
+          <p className="text-sm md:text-base text-muted-foreground mb-6 leading-relaxed">
             Você cancelou o processo de pagamento. Seu relatório premium não foi desbloqueado.
           </p>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {testAttemptId ? (
-              <Button onClick={() => navigate(`/resultado/${testAttemptId}`)}>
+              <Button onClick={() => navigate(`/resultado/${testAttemptId}`)} className="w-full min-h-[52px] text-base" variant="hero">
                 Voltar ao Resultado
               </Button>
             ) : (
-              <Button onClick={() => navigate('/dashboard')}>
+              <Button onClick={() => navigate('/dashboard')} className="w-full min-h-[52px] text-base" variant="hero">
                 Voltar ao Dashboard
               </Button>
             )}
-            <Button variant="outline" onClick={() => navigate('/testes')}>
+            <Button variant="outline" onClick={() => navigate('/testes')} className="w-full min-h-[48px] text-base">
               Ver Outros Testes
             </Button>
           </div>

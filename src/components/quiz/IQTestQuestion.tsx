@@ -25,19 +25,19 @@ const IQTestQuestion = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 md:space-y-6">
       {/* Question header */}
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <span className="text-sm md:text-base text-muted-foreground">
           Questão {questionNumber} de {totalQuestions}
         </span>
-        <span className={`text-xs px-2 py-1 rounded-full ${difficultyLabels[question.difficulty].color}`}>
+        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${difficultyLabels[question.difficulty].color}`}>
           {difficultyLabels[question.difficulty].text}
         </span>
       </div>
 
       {/* Question text */}
-      <h2 className="text-xl md:text-2xl font-semibold text-foreground leading-relaxed">
+      <h2 className="text-lg md:text-xl lg:text-2xl font-semibold text-foreground leading-relaxed">
         {question.question}
       </h2>
 
@@ -50,22 +50,26 @@ const IQTestQuestion = ({
         {question.options.map((option, index) => (
           <div
             key={index}
-            className={`flex items-center space-x-3 p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+            className={`flex items-center space-x-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 min-h-[56px] active:scale-[0.98] ${
               selectedAnswer === index
-                ? 'border-primary bg-primary/5'
+                ? 'border-primary bg-primary/5 shadow-sm'
                 : 'border-border hover:border-primary/50 hover:bg-muted/50'
             }`}
             onClick={() => onAnswerSelect(index)}
           >
-            <RadioGroupItem value={index.toString()} id={`option-${index}`} />
+            <RadioGroupItem value={index.toString()} id={`option-${index}`} className="sr-only" />
             <Label
               htmlFor={`option-${index}`}
-              className="flex-1 cursor-pointer text-base font-medium"
+              className="flex-1 cursor-pointer text-base font-medium flex items-center gap-3"
             >
-              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-muted text-muted-foreground font-bold mr-3">
+              <span className={`inline-flex items-center justify-center w-9 h-9 md:w-8 md:h-8 rounded-full font-bold text-sm shrink-0 ${
+                selectedAnswer === index 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-muted text-muted-foreground'
+              }`}>
                 {letters[index]}
               </span>
-              {option}
+              <span className="leading-relaxed">{option}</span>
             </Label>
           </div>
         ))}

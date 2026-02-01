@@ -63,117 +63,127 @@ const Cadastro = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 flex items-center justify-center py-12 px-4">
-        <div className="w-full max-w-4xl grid md:grid-cols-2 gap-8">
-          {/* Benefits */}
-          <div className="hidden md:flex flex-col justify-center">
-            <h2 className="font-display text-3xl font-bold mb-6">
-              Comece Sua Jornada de
-              <span className="text-gradient-primary"> Autoconhecimento</span>
-            </h2>
-            <p className="text-muted-foreground mb-8">
-              Junte-se a mais de 50.000 pessoas que já descobriram mais sobre si mesmas com nossos testes científicos.
-            </p>
-            <ul className="space-y-4">
-              {benefits.map((benefit, index) => (
-                <li key={index} className="flex items-center gap-3">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-success/20 text-success">
-                    <Check className="h-4 w-4" />
-                  </div>
-                  <span className="font-medium">{benefit}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Form */}
-          <div className="glass-card p-8">
-            <div className="text-center mb-8">
-              <h1 className="font-display text-2xl font-bold mb-2">Criar Conta Grátis</h1>
-              <p className="text-muted-foreground">Preencha os dados abaixo para começar</p>
+      <main className="flex-1 flex items-center justify-center py-8 md:py-12 px-4">
+        <div className="w-full max-w-4xl">
+          {/* Mobile: Single column, Desktop: Two columns */}
+          <div className="flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-8">
+            {/* Benefits - Hidden on mobile, shown on desktop */}
+            <div className="hidden md:flex flex-col justify-center">
+              <h2 className="font-display text-3xl font-bold mb-6">
+                Comece Sua Jornada de
+                <span className="text-gradient-primary"> Autoconhecimento</span>
+              </h2>
+              <p className="text-muted-foreground mb-8">
+                Junte-se a mais de 50.000 pessoas que já descobriram mais sobre si mesmas com nossos testes científicos.
+              </p>
+              <ul className="space-y-4">
+                {benefits.map((benefit, index) => (
+                  <li key={index} className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-success/20 text-success shrink-0">
+                      <Check className="h-4 w-4" />
+                    </div>
+                    <span className="font-medium">{benefit}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Nome Completo</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="fullName"
-                    type="text"
-                    placeholder="Seu nome completo"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
-                </div>
+            {/* Form */}
+            <div className="glass-card p-6 md:p-8">
+              <div className="text-center mb-6 md:mb-8">
+                <h1 className="font-display text-xl md:text-2xl font-bold mb-2">Criar Conta Grátis</h1>
+                <p className="text-sm md:text-base text-muted-foreground">Preencha os dados abaixo para começar</p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="text-sm md:text-base">Nome Completo</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+                    <Input
+                      id="fullName"
+                      type="text"
+                      placeholder="Seu nome completo"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="pl-10 md:pl-11 min-h-[48px] text-base"
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Mínimo 6 caracteres"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10"
-                    required
-                    minLength={6}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm md:text-base">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10 md:pl-11 min-h-[48px] text-base"
+                      required
+                    />
+                  </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-sm md:text-base">Senha</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Mínimo 6 caracteres"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 md:pl-11 pr-11 min-h-[48px] text-base"
+                      required
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+                      aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  variant="hero" 
+                  className="w-full min-h-[52px] text-base" 
+                  size="lg" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Criando conta..." : "Criar Conta Grátis"}
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+
+                <p className="text-xs text-center text-muted-foreground leading-relaxed">
+                  Ao criar uma conta, você concorda com nossos{" "}
+                  <Link to="/termos" className="text-primary hover:underline">
+                    Termos de Uso
+                  </Link>{" "}
+                  e{" "}
+                  <Link to="/privacidade" className="text-primary hover:underline">
+                    Política de Privacidade
+                  </Link>
+                </p>
+              </form>
+
+              <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Já tem uma conta?{" "}
+                  <Link to="/login" className="text-primary font-medium hover:underline">
+                    Entrar
+                  </Link>
+                </p>
               </div>
-
-              <Button type="submit" variant="hero" className="w-full" size="lg" disabled={isLoading}>
-                {isLoading ? "Criando conta..." : "Criar Conta Grátis"}
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-
-              <p className="text-xs text-center text-muted-foreground">
-                Ao criar uma conta, você concorda com nossos{" "}
-                <Link to="/termos" className="text-primary hover:underline">
-                  Termos de Uso
-                </Link>{" "}
-                e{" "}
-                <Link to="/privacidade" className="text-primary hover:underline">
-                  Política de Privacidade
-                </Link>
-              </p>
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                Já tem uma conta?{" "}
-                <Link to="/login" className="text-primary font-medium hover:underline">
-                  Entrar
-                </Link>
-              </p>
             </div>
           </div>
         </div>

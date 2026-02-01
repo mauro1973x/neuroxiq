@@ -66,7 +66,7 @@ const demoQuizzes: Quiz[] = [{
 }, {
   id: "5",
   title: "Teste de Inteligência Emocional (QE)",
-  description: "Avalie sua capacidade emocional em situações pessoais, sociais e profissionais. Mede autoconsciência, empatia e gestão de relacionamentos.",
+  description: "Avalie sua capacidade emocional em situações pessoais, sociais e profissionais.",
   test_type: "emotional",
   image_url: null,
   duration_minutes: 20,
@@ -78,89 +78,91 @@ const demoQuizzes: Quiz[] = [{
   price_certificate: 24.9,
   created_at: new Date().toISOString()
 }];
+
 const features = [{
   icon: Brain,
   title: "Testes Científicos",
-  description: "Metodologias validadas por especialistas em psicometria e psicologia."
+  description: "Metodologias validadas por especialistas em psicometria."
 }, {
   icon: Zap,
-  title: "Resultados Instantâneos",
-  description: "Receba seu resultado básico imediatamente após completar o teste."
+  title: "Resultados Rápidos",
+  description: "Receba seu resultado básico imediatamente."
 }, {
   icon: Award,
   title: "Certificados Oficiais",
-  description: "Gere certificados personalizados em PDF para compartilhar."
+  description: "Gere certificados personalizados em PDF."
 }, {
   icon: TrendingUp,
   title: "Relatórios Detalhados",
-  description: "Análise profunda com interpretações e recomendações personalizadas."
+  description: "Análise profunda com recomendações personalizadas."
 }, {
   icon: Shield,
   title: "Dados Seguros",
-  description: "Seus dados são criptografados e protegidos com as melhores práticas."
+  description: "Seus dados são criptografados e protegidos."
 }, {
   icon: Users,
   title: "+50.000 Usuários",
-  description: "Junte-se a milhares de pessoas que já descobriram mais sobre si mesmas."
+  description: "Milhares já descobriram mais sobre si mesmos."
 }];
+
 const Index = () => {
-  return <div className="min-h-screen flex flex-col">
+  return (
+    <div className="min-h-screen flex flex-col">
       <Header />
 
       {/* Hero Section */}
-      <section className="hero-gradient py-20 lg:py-32">
-        <div className="container">
+      <section className="hero-gradient py-12 md:py-20 lg:py-32">
+        <div className="container px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-accent/10 text-accent-foreground px-4 py-2 rounded-full mb-6 animate-fade-in">
-              <span className="premium-badge">Novo</span>
-              <span className="text-sm font-medium">Teste de Inteligência Emocional disponível</span>
+            <div className="inline-flex items-center gap-2 bg-accent/10 text-accent-foreground px-3 py-1.5 md:px-4 md:py-2 rounded-full mb-5 md:mb-6 animate-fade-in">
+              <span className="premium-badge text-xs">Novo</span>
+              <span className="text-xs md:text-sm font-medium">Teste de Inteligência Emocional</span>
             </div>
 
-            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in" style={{
-            animationDelay: "0.1s"
-          }}>
+            <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 animate-fade-in leading-tight" style={{
+              animationDelay: "0.1s"
+            }}>
               Descubra Seu
               <span className="text-gradient-primary"> Verdadeiro Potencial</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 animate-fade-in" style={{
-            animationDelay: "0.2s"
-          }}>
-              Testes científicos de personalidade, QI e carreira com resultados detalhados e certificados
-              personalizados.
+            <p className="text-base md:text-lg lg:text-xl text-muted-foreground mb-6 md:mb-8 animate-fade-in leading-relaxed px-2" style={{
+              animationDelay: "0.2s"
+            }}>
+              Testes científicos de personalidade, QI e carreira com resultados detalhados e certificados personalizados.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{
-            animationDelay: "0.3s"
-          }}>
-              <Link to="/cadastro">
-                <Button variant="hero" size="xl">
+            <div className="flex flex-col gap-3 md:flex-row md:gap-4 justify-center animate-fade-in px-4 md:px-0" style={{
+              animationDelay: "0.3s"
+            }}>
+              <Link to="/cadastro" className="w-full md:w-auto">
+                <Button variant="hero" size="xl" className="w-full min-h-[52px] text-base">
                   Começar Agora Grátis
                   <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
-              <Link to="/testes">
-                <Button variant="outline" size="xl">
+              <Link to="/testes" className="w-full md:w-auto">
+                <Button variant="outline" size="xl" className="w-full min-h-[52px] text-base">
                   Ver Todos os Testes
                 </Button>
               </Link>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 mt-16 pt-8 border-t border-border animate-fade-in" style={{
-            animationDelay: "0.4s"
-          }}>
+            <div className="grid grid-cols-3 gap-4 md:gap-8 mt-10 md:mt-16 pt-6 md:pt-8 border-t border-border animate-fade-in" style={{
+              animationDelay: "0.4s"
+            }}>
               <div>
-                <div className="font-display text-3xl md:text-4xl font-bold text-foreground">50k+</div>
-                <div className="text-sm text-muted-foreground">Usuários</div>
+                <div className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-foreground">50k+</div>
+                <div className="text-xs md:text-sm text-muted-foreground">Usuários</div>
               </div>
               <div>
-                <div className="font-display text-3xl md:text-4xl font-bold text-foreground">5</div>
-                <div className="text-sm text-muted-foreground">Tipos de Teste</div>
+                <div className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-foreground">5</div>
+                <div className="text-xs md:text-sm text-muted-foreground">Tipos de Teste</div>
               </div>
               <div>
-                <div className="font-display text-3xl md:text-4xl font-bold text-foreground">98%</div>
-                <div className="text-sm text-muted-foreground">Satisfação</div>
+                <div className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-foreground">98%</div>
+                <div className="text-xs md:text-sm text-muted-foreground">Satisfação</div>
               </div>
             </div>
           </div>
@@ -168,22 +170,22 @@ const Index = () => {
       </section>
 
       {/* Featured Tests */}
-      <section className="py-20 bg-background">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Testes em Destaque</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+      <section className="py-12 md:py-20 bg-background">
+        <div className="container px-4">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4">Testes em Destaque</h2>
+            <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Escolha entre nossos testes mais populares e comece sua jornada de autoconhecimento.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {demoQuizzes.map(quiz => <QuizCard key={quiz.id} quiz={quiz} />)}
           </div>
 
-          <div className="text-center mt-10">
+          <div className="text-center mt-8 md:mt-10">
             <Link to="/testes">
-              <Button variant="outline" size="lg">
+              <Button variant="outline" size="lg" className="min-h-[48px] text-base w-full md:w-auto">
                 Ver Todos os Testes
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -193,37 +195,39 @@ const Index = () => {
       </section>
 
       {/* Features */}
-      <section className="py-20 bg-muted/30">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Por Que Escolher o NEUROX?</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+      <section className="py-12 md:py-20 bg-muted/30">
+        <div className="container px-4">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4">Por Que Escolher o NEUROX?</h2>
+            <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Uma plataforma completa para você descobrir mais sobre si mesmo com credibilidade.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => <div key={index} className="glass-card p-6 text-center hover:shadow-lg transition-all duration-300">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 text-primary mx-auto mb-4">
-                  <feature.icon className="h-7 w-7" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+            {features.map((feature, index) => (
+              <div key={index} className="glass-card p-5 md:p-6 text-center hover:shadow-lg transition-all duration-300">
+                <div className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-xl bg-primary/10 text-primary mx-auto mb-3 md:mb-4">
+                  <feature.icon className="h-6 w-6 md:h-7 md:w-7" />
                 </div>
-                <h3 className="font-display text-lg font-semibold mb-2">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.description}</p>
-              </div>)}
+                <h3 className="font-display text-base md:text-lg font-semibold mb-2">{feature.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary text-primary-foreground">
-        <div className="container">
+      <section className="py-12 md:py-20 bg-primary text-primary-foreground">
+        <div className="container px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Pronto Para Se Conhecer Melhor?</h2>
-            <p className="text-lg opacity-90 mb-8">
+            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4">Pronto Para Se Conhecer Melhor?</h2>
+            <p className="text-base md:text-lg opacity-90 mb-6 md:mb-8 leading-relaxed">
               Crie sua conta gratuita e comece seu primeiro teste agora mesmo. Resultados básicos são sempre grátis!
             </p>
-            <Link to="/cadastro">
-              <Button variant="premium" size="xl">
+            <Link to="/cadastro" className="block md:inline-block">
+              <Button variant="premium" size="xl" className="w-full md:w-auto min-h-[52px] text-base">
                 Criar Conta Grátis
                 <ArrowRight className="h-5 w-5" />
               </Button>
@@ -233,6 +237,8 @@ const Index = () => {
       </section>
 
       <Footer />
-    </div>;
+    </div>
+  );
 };
+
 export default Index;

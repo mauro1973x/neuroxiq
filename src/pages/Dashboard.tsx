@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Clock, Award, FileText, ArrowRight, Crown } from 'lucide-react';
+import { Clock, Award, FileText, ArrowRight, Crown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -84,63 +84,63 @@ const Dashboard = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 py-12">
-        <div className="container">
+      <main className="flex-1 py-6 md:py-12">
+        <div className="container px-4">
           {/* Welcome */}
-          <div className="mb-10">
-            <h1 className="font-display text-3xl font-bold mb-2">
-              Olá, {profile?.full_name || 'Usuário'}! 👋
+          <div className="mb-6 md:mb-10">
+            <h1 className="font-display text-2xl md:text-3xl font-bold mb-1 md:mb-2">
+              Olá, {profile?.full_name?.split(' ')[0] || 'Usuário'}! 👋
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm md:text-base text-muted-foreground">
               Acompanhe seu progresso e acesse seus resultados
             </p>
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div className="glass-card p-6">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <FileText className="h-6 w-6" />
+          {/* Quick Stats - Horizontal scroll on mobile */}
+          <div className="flex gap-3 md:gap-6 overflow-x-auto pb-2 mb-6 md:mb-10 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide md:grid md:grid-cols-3">
+            <div className="glass-card p-4 md:p-6 min-w-[160px] md:min-w-0 shrink-0 md:shrink">
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+                  <FileText className="h-5 w-5 md:h-6 md:w-6" />
                 </div>
                 <div>
-                  <div className="font-display text-2xl font-bold">
+                  <div className="font-display text-xl md:text-2xl font-bold">
                     {attempts.length}
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    Testes Realizados
+                  <div className="text-xs md:text-sm text-muted-foreground">
+                    Testes
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="glass-card p-6">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/10 text-success">
-                  <Award className="h-6 w-6" />
+            <div className="glass-card p-4 md:p-6 min-w-[160px] md:min-w-0 shrink-0 md:shrink">
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-xl bg-success/10 text-success shrink-0">
+                  <Award className="h-5 w-5 md:h-6 md:w-6" />
                 </div>
                 <div>
-                  <div className="font-display text-2xl font-bold">
+                  <div className="font-display text-xl md:text-2xl font-bold">
                     {attempts.filter((a) => a.has_certificate).length}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-xs md:text-sm text-muted-foreground">
                     Certificados
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="glass-card p-6">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/20 text-accent-foreground">
-                  <Crown className="h-6 w-6" />
+            <div className="glass-card p-4 md:p-6 min-w-[160px] md:min-w-0 shrink-0 md:shrink">
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-xl bg-accent/20 text-accent-foreground shrink-0">
+                  <Crown className="h-5 w-5 md:h-6 md:w-6" />
                 </div>
                 <div>
-                  <div className="font-display text-2xl font-bold">
+                  <div className="font-display text-xl md:text-2xl font-bold">
                     {attempts.filter((a) => a.has_premium_access).length}
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    Relatórios Premium
+                  <div className="text-xs md:text-sm text-muted-foreground">
+                    Premium
                   </div>
                 </div>
               </div>
@@ -149,15 +149,16 @@ const Dashboard = () => {
 
           {/* Test History */}
           <div className="glass-card">
-            <div className="p-6 border-b border-border">
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-xl font-bold">
-                  Histórico de Testes
+            <div className="p-4 md:p-6 border-b border-border">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="font-display text-lg md:text-xl font-bold">
+                  Histórico
                 </h2>
                 <Link to="/testes">
-                  <Button variant="outline" size="sm">
-                    Fazer Novo Teste
-                    <ArrowRight className="h-4 w-4" />
+                  <Button variant="outline" size="sm" className="min-h-[40px] text-sm">
+                    <span className="hidden sm:inline">Fazer Novo Teste</span>
+                    <span className="sm:hidden">Novo</span>
+                    <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Link>
               </div>
@@ -168,29 +169,29 @@ const Dashboard = () => {
                 Array(3)
                   .fill(0)
                   .map((_, i) => (
-                    <div key={i} className="p-6">
-                      <div className="flex items-center gap-4">
-                        <Skeleton className="h-12 w-12 rounded-xl" />
-                        <div className="flex-1">
-                          <Skeleton className="h-5 w-48 mb-2" />
-                          <Skeleton className="h-4 w-32" />
+                    <div key={i} className="p-4 md:p-6">
+                      <div className="flex items-center gap-3 md:gap-4">
+                        <Skeleton className="h-10 w-10 md:h-12 md:w-12 rounded-xl shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <Skeleton className="h-5 w-32 md:w-48 mb-2" />
+                          <Skeleton className="h-4 w-24 md:w-32" />
                         </div>
                       </div>
                     </div>
                   ))
               ) : attempts.length === 0 ? (
-                <div className="p-12 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted mx-auto mb-4">
-                    <FileText className="h-8 w-8 text-muted-foreground" />
+                <div className="p-8 md:p-12 text-center">
+                  <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-full bg-muted mx-auto mb-4">
+                    <FileText className="h-7 w-7 md:h-8 md:w-8 text-muted-foreground" />
                   </div>
-                  <h3 className="font-display text-lg font-semibold mb-2">
+                  <h3 className="font-display text-base md:text-lg font-semibold mb-2">
                     Nenhum teste realizado
                   </h3>
-                  <p className="text-muted-foreground mb-6">
+                  <p className="text-sm md:text-base text-muted-foreground mb-6 max-w-xs mx-auto">
                     Comece seu primeiro teste e descubra mais sobre você!
                   </p>
                   <Link to="/testes">
-                    <Button variant="hero">
+                    <Button variant="hero" className="min-h-[48px] text-base w-full sm:w-auto">
                       Explorar Testes
                       <ArrowRight className="h-4 w-4" />
                     </Button>
@@ -198,48 +199,57 @@ const Dashboard = () => {
                 </div>
               ) : (
                 attempts.map((attempt) => (
-                  <div key={attempt.id} className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-2xl">
-                        {TEST_TYPE_ICONS[attempt.quizzes.test_type]}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold truncate">
-                            {attempt.quizzes.title}
-                          </h3>
-                          {attempt.has_premium_access && (
-                            <span className="premium-badge text-xs">Premium</span>
-                          )}
+                  <div key={attempt.id} className="p-4 md:p-6">
+                    {/* Mobile: Stacked layout */}
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+                      <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                        <div className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-xl bg-muted text-xl md:text-2xl shrink-0">
+                          {TEST_TYPE_ICONS[attempt.quizzes.test_type]}
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <Badge variant="secondary">
-                            {TEST_TYPE_LABELS[attempt.quizzes.test_type]}
-                          </Badge>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3.5 w-3.5" />
-                            {new Date(attempt.started_at).toLocaleDateString('pt-BR')}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <h3 className="font-semibold text-sm md:text-base truncate">
+                              {attempt.quizzes.title}
+                            </h3>
+                            {attempt.has_premium_access && (
+                              <span className="premium-badge text-xs py-0.5 px-1.5">Premium</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground flex-wrap">
+                            <Badge variant="secondary" className="text-xs">
+                              {TEST_TYPE_LABELS[attempt.quizzes.test_type]}
+                            </Badge>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                              {new Date(attempt.started_at).toLocaleDateString('pt-BR')}
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      
+                      {/* Action buttons - Full width on mobile */}
+                      <div className="flex items-center gap-2 md:gap-2">
                         {attempt.completed_at ? (
                           <>
-                            <Link to={`/resultado/${attempt.id}`}>
-                              <Button variant="outline" size="sm">
+                            <Link to={`/resultado/${attempt.id}`} className="flex-1 md:flex-none">
+                              <Button variant="outline" size="sm" className="w-full min-h-[44px] md:min-h-[36px]">
                                 Ver Resultado
+                                <ChevronRight className="h-4 w-4 ml-1 md:hidden" />
                               </Button>
                             </Link>
                             {!attempt.has_premium_access && (
-                              <Button variant="premium" size="sm">
-                                Liberar Premium
-                              </Button>
+                              <Link to={`/resultado/${attempt.id}`} className="flex-1 md:flex-none">
+                                <Button variant="premium" size="sm" className="w-full min-h-[44px] md:min-h-[36px]">
+                                  Premium
+                                </Button>
+                              </Link>
                             )}
                           </>
                         ) : (
-                          <Link to={`/teste/${attempt.quiz_id}/continuar`}>
-                            <Button variant="default" size="sm">
+                          <Link to={`/teste/${attempt.quiz_id}/continuar`} className="flex-1">
+                            <Button variant="default" size="sm" className="w-full min-h-[44px] md:min-h-[36px]">
                               Continuar
+                              <ArrowRight className="h-4 w-4 ml-1" />
                             </Button>
                           </Link>
                         )}

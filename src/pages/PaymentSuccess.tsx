@@ -83,31 +83,35 @@ const PaymentSuccess = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className="flex-1 container py-12 flex items-center justify-center">
+      <main className="flex-1 container py-8 md:py-12 px-4 flex items-center justify-center">
         <div className="max-w-md w-full">
           {status === 'verifying' && (
             <div className="text-center">
-              <Loader2 className="h-16 w-16 animate-spin text-primary mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Verificando Pagamento...</h2>
-              <p className="text-muted-foreground">
-                Aguarde enquanto confirmamos seu pagamento com o Stripe.
+              <Loader2 className="h-14 w-14 md:h-16 md:w-16 animate-spin text-primary mx-auto mb-4" />
+              <h2 className="text-xl md:text-2xl font-bold mb-2">Verificando Pagamento...</h2>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                Aguarde enquanto confirmamos seu pagamento.
               </p>
             </div>
           )}
 
           {status === 'success' && (
             <div className="text-center">
-              <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="h-12 w-12 text-green-600" />
+              <div className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="h-8 w-8 md:h-12 md:w-12 text-success" />
               </div>
-              <h2 className="text-2xl font-bold text-green-600 mb-2">Pagamento Confirmado!</h2>
-              <p className="text-muted-foreground mb-4">
+              <h2 className="text-xl md:text-2xl font-bold text-success mb-2">Pagamento Confirmado!</h2>
+              <p className="text-sm md:text-base text-muted-foreground mb-4 leading-relaxed">
                 Seu relatório premium foi liberado com sucesso.
               </p>
-              <p className="text-sm text-muted-foreground mb-6">
+              <p className="text-xs md:text-sm text-muted-foreground mb-6">
                 Redirecionando para seu resultado...
               </p>
-              <Button onClick={() => navigate(`/resultado/${attemptId}`)}>
+              <Button 
+                onClick={() => navigate(`/resultado/${attemptId}`)}
+                className="w-full min-h-[52px] text-base"
+                variant="hero"
+              >
                 Ver Relatório Premium
               </Button>
             </div>
@@ -115,26 +119,23 @@ const PaymentSuccess = () => {
 
           {status === 'error' && (
             <div className="text-center">
-              <Alert variant="destructive" className="mb-6">
+              <Alert variant="destructive" className="mb-6 text-left">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Erro na Verificação</AlertTitle>
-                <AlertDescription>
+                <AlertDescription className="text-sm">
                   {errorMessage || 'Não foi possível verificar o pagamento.'}
                 </AlertDescription>
               </Alert>
-              <div className="space-y-4">
-                <p className="text-muted-foreground">
-                  Se você completou o pagamento, aguarde alguns instantes e tente novamente.
-                  O webhook do Stripe pode demorar alguns segundos.
-                </p>
-                <div className="flex flex-col gap-2">
-                  <Button onClick={verifyPayment}>
-                    Tentar Novamente
-                  </Button>
-                  <Button variant="outline" onClick={() => navigate('/dashboard')}>
-                    Voltar ao Dashboard
-                  </Button>
-                </div>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                Se você completou o pagamento, aguarde alguns instantes e tente novamente.
+              </p>
+              <div className="flex flex-col gap-3">
+                <Button onClick={verifyPayment} className="w-full min-h-[52px] text-base">
+                  Tentar Novamente
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/dashboard')} className="w-full min-h-[48px] text-base">
+                  Voltar ao Dashboard
+                </Button>
               </div>
             </div>
           )}
