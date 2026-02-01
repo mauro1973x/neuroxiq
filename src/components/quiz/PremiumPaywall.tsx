@@ -1,26 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Award, Lock, CreditCard, QrCode, Loader2, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { buildCheckoutRedirectUrl, PurchaseType } from '@/lib/checkout';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+import { PurchaseType } from '@/lib/checkout';
 
 interface PremiumPaywallProps {
   attemptId: string;
   onPaymentSuccess?: () => void;
 }
 
-type ButtonState = 'idle' | 'redirecting' | 'error';
+type ButtonState = 'idle' | 'loading' | 'error';
 
 interface ProductState {
   state: ButtonState;
   error: string | null;
 }
 
+const TIMEOUT_MS = 15000; // 15 seconds timeout
+
 const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) => {
   const [productStates, setProductStates] = useState<Record<string, ProductState>>({});
+  const timeoutRefs = useRef<Record<string, NodeJS.Timeout>>({});
+  const navigate = useNavigate();
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(timeoutRefs.current).forEach(timeout => clearTimeout(timeout));
+    };
+  }, []);
 
   const getProductState = (productId: string): ProductState => {
     return productStates[productId] || { state: 'idle', error: null };
@@ -33,30 +46,108 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
     }));
   };
 
-  const handleClick = (purchaseType: PurchaseType, e: React.MouseEvent) => {
+  const clearProductTimeout = (productId: string) => {
+    if (timeoutRefs.current[productId]) {
+      clearTimeout(timeoutRefs.current[productId]);
+      delete timeoutRefs.current[productId];
+    }
+  };
+
+  const handleClick = async (purchaseType: PurchaseType) => {
     const productKey = purchaseType;
     
+    // Validate attemptId
     if (!attemptId) {
-      e.preventDefault();
+      console.error('[PAYWALL] No attemptId provided');
       updateProductState(productKey, { state: 'error', error: 'ID do teste não encontrado.' });
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "ID do teste não encontrado."
+      });
       return;
     }
     
-    console.log('[PAYWALL] Initiating checkout redirect:', { purchaseType, attemptId });
-    updateProductState(productKey, { state: 'redirecting', error: null });
-    // Navigation happens via anchor href
+    console.log('[PAYWALL] Creating Stripe checkout session...', { purchaseType, attemptId });
+    updateProductState(productKey, { state: 'loading', error: null });
+
+    // Set timeout to prevent infinite loading
+    timeoutRefs.current[productKey] = setTimeout(() => {
+      console.error('[PAYWALL] Timeout: checkout session took too long');
+      updateProductState(productKey, { 
+        state: 'error', 
+        error: 'Não foi possível iniciar o pagamento. Tente novamente.' 
+      });
+      toast({
+        variant: "destructive",
+        title: "Tempo esgotado",
+        description: "Não foi possível iniciar o pagamento. Tente novamente."
+      });
+    }, TIMEOUT_MS);
+
+    try {
+      // Call edge function to create checkout session
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { 
+          attemptId, 
+          purchaseType,
+          paymentMethod: 'card'
+        }
+      });
+
+      // Clear timeout since we got a response
+      clearProductTimeout(productKey);
+
+      // Handle authentication errors
+      if (error) {
+        console.error('[PAYWALL] Edge function error:', error);
+        
+        // Check for auth errors (401/403)
+        if (error.message?.includes('401') || error.message?.includes('403') || 
+            error.message?.includes('not authenticated') || error.message?.includes('Unauthorized')) {
+          updateProductState(productKey, { state: 'error', error: 'Faça login para continuar' });
+          toast({
+            variant: "destructive",
+            title: "Autenticação necessária",
+            description: "Faça login para continuar"
+          });
+          navigate('/login');
+          return;
+        }
+
+        throw new Error(error.message || 'Erro ao criar sessão de pagamento');
+      }
+
+      // Validate response has checkout URL
+      if (!data?.url) {
+        console.error('[PAYWALL] No checkout URL in response:', data);
+        throw new Error('URL de checkout não retornada pelo servidor');
+      }
+
+      console.log('[PAYWALL] Checkout URL received:', data.url.substring(0, 80) + '...');
+      console.log('[PAYWALL] Redirecting...');
+
+      // Redirect using window.location.assign (same tab, no popup blocker issues)
+      window.location.assign(data.url);
+
+    } catch (err) {
+      // Clear timeout on error
+      clearProductTimeout(productKey);
+
+      const message = err instanceof Error ? err.message : 'Erro desconhecido';
+      console.error('[PAYWALL] Error creating checkout session:', err);
+      
+      updateProductState(productKey, { state: 'error', error: message });
+      toast({
+        variant: "destructive",
+        title: "Erro ao iniciar pagamento",
+        description: message
+      });
+    }
   };
 
   const handleRetry = (productKey: string) => {
     updateProductState(productKey, { state: 'idle', error: null });
-  };
-
-  // Build redirect URLs for each product
-  const getRedirectUrl = (purchaseType: PurchaseType) => {
-    return buildCheckoutRedirectUrl({
-      attemptId,
-      purchaseType
-    });
   };
 
   const products = [
@@ -106,8 +197,7 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
 
   const renderPaymentButton = (product: typeof products[0]) => {
     const productState = getProductState(product.id);
-    const redirectUrl = getRedirectUrl(product.id);
-    const isAnyRedirecting = Object.values(productStates).some(s => s.state === 'redirecting');
+    const isAnyLoading = Object.values(productStates).some(s => s.state === 'loading');
 
     // Show error state
     if (productState.state === 'error') {
@@ -130,43 +220,35 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
       );
     }
 
-    // Show redirecting state
-    if (productState.state === 'redirecting') {
+    // Show loading state
+    if (productState.state === 'loading') {
       return (
         <div className="w-full p-3 rounded-lg bg-primary/10 border border-primary/30 text-center space-y-2">
           <div className="flex items-center justify-center gap-2 text-primary text-sm">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Redirecionando...</span>
+            <span>Iniciando pagamento...</span>
           </div>
-          <a
-            href={redirectUrl}
-            target="_top"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-primary underline"
-          >
-            <ExternalLink className="h-3 w-3" />
-            Clique aqui se não for redirecionado
-          </a>
+          <p className="text-xs text-muted-foreground">
+            Aguarde, você será redirecionado...
+          </p>
         </div>
       );
     }
 
-    // Normal button - using anchor tag for reliable server-side redirect
+    // Normal button
     return (
-      <a
-        href={redirectUrl}
-        target="_top"
-        rel="noopener noreferrer"
-        onClick={(e) => handleClick(product.id, e)}
-        className={`flex items-center justify-center gap-2 w-full min-h-[48px] text-base font-medium rounded-lg px-4 py-2 no-underline transition-all active:scale-[0.98] ${
+      <button
+        onClick={() => handleClick(product.id)}
+        disabled={isAnyLoading}
+        className={`flex items-center justify-center gap-2 w-full min-h-[48px] text-base font-medium rounded-lg px-4 py-2 transition-all active:scale-[0.98] cursor-pointer ${
           product.isBest 
             ? 'bg-gradient-to-r from-accent to-accent/80 text-accent-foreground hover:opacity-90' 
             : 'bg-primary text-primary-foreground hover:opacity-90'
-        } ${isAnyRedirecting ? 'opacity-50 pointer-events-none' : ''}`}
+        } ${isAnyLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <CreditCard className="h-4 w-4" />
         Pagar Agora
-      </a>
+      </button>
     );
   };
 
@@ -226,7 +308,7 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
                 ))}
               </ul>
 
-              {/* Single payment button (server-side redirect handles payment methods) */}
+              {/* Payment button */}
               {renderPaymentButton(product)}
               
               <p className="text-xs text-center text-muted-foreground mt-2">
