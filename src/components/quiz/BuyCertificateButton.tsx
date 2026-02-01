@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import certificatePreview from '@/assets/certificate-preview.png';
 
 interface BuyCertificateButtonProps {
   attemptId: string;
@@ -99,15 +100,26 @@ const BuyCertificateButton = ({
   return (
     <Card className={`border-2 border-amber-500/30 bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20 ${className}`}>
       <CardHeader className="pb-3">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-            <Award className="h-6 w-6 text-white" />
+        <div className="flex items-start gap-4">
+          {/* Certificate thumbnail */}
+          <div className="hidden sm:block w-20 h-20 rounded-lg overflow-hidden border-2 border-amber-300/50 shadow-md flex-shrink-0 bg-white">
+            <img 
+              src={certificatePreview} 
+              alt="Certificado ilustrativo" 
+              className="w-full h-full object-cover"
+            />
           </div>
-          <div>
-            <CardTitle className="text-lg">Certificado Oficial NEUROX</CardTitle>
-            <CardDescription className="text-sm">
-              Documento exclusivo com seu resultado
-            </CardDescription>
+          
+          <div className="flex items-center gap-3 flex-1">
+            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0">
+              <Award className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">Certificado Oficial NEUROX</CardTitle>
+              <CardDescription className="text-sm">
+                Documento exclusivo com seu resultado
+              </CardDescription>
+            </div>
           </div>
         </div>
       </CardHeader>
