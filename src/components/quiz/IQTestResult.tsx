@@ -56,38 +56,8 @@ const IQTestResult = ({ score, totalQuestions, resultBand, showPremium, onUnlock
             <p className="text-muted-foreground leading-relaxed">{resultBand.freeDescription}</p>
           </div>
 
-          {/* Premium Section */}
-          {!showPremium ? (
-            <Card className="border-2 border-accent/50 bg-accent/5">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Lock className="h-5 w-5 text-accent" />
-                  Relatório Premium Bloqueado
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Desbloqueie sua análise completa com interpretações detalhadas, recomendações personalizadas e
-                  comparativo com a população.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button 
-                    variant="premium" 
-                    className="flex-1"
-                    onClick={onUnlockClick}
-                    disabled={isUnlocking}
-                  >
-                    {isUnlocking ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Award className="h-4 w-4" />
-                    )}
-                    {isUnlocking ? 'Processando...' : 'Desbloquear por R$ 19,90'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
+          {/* Premium Section - only show when unlocked */}
+          {showPremium && (
             <div className="space-y-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
               <h3 className="font-semibold text-lg flex items-center gap-2">
                 <Award className="h-5 w-5 text-accent" />
