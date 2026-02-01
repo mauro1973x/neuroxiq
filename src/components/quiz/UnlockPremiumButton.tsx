@@ -66,6 +66,15 @@ const UnlockPremiumButton = ({
 
       console.log('[UNLOCK-BUTTON] Checkout session created:', data?.sessionId);
 
+      // Show toast if PIX is unavailable
+      if (data?.pix_available === false) {
+        toast({
+          title: 'PIX indisponível',
+          description: 'PIX indisponível no momento. Use cartão.',
+          variant: 'default',
+        });
+      }
+
       if (data?.url) {
         onPaymentInitiated?.();
         window.location.href = data.url;
