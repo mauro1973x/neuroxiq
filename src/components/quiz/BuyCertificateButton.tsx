@@ -3,7 +3,8 @@ import { Loader2, Award, Sparkles, AlertCircle, ExternalLink } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { buildCheckoutRedirectUrl, PurchaseType } from '@/lib/checkout';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 import certificatePreview from '@/assets/certificate-preview.png';
 
 interface BuyCertificateButtonProps {
@@ -16,7 +17,7 @@ interface BuyCertificateButtonProps {
 
 const CERTIFICATE_PRICE = 19.90;
 
-type ButtonState = 'idle' | 'redirecting' | 'error';
+type ButtonState = 'idle' | 'processing' | 'redirecting' | 'error';
 
 const BuyCertificateButton = ({ 
   attemptId, 
@@ -27,26 +28,56 @@ const BuyCertificateButton = ({
 }: BuyCertificateButtonProps) => {
   const [buttonState, setButtonState] = useState<ButtonState>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  // Build the server-side redirect URL
-  const redirectUrl = buildCheckoutRedirectUrl({
-    attemptId,
-    purchaseType: 'certificate' as PurchaseType
-  });
-
-  const handleClick = (e: React.MouseEvent) => {
+  const handleCheckout = async () => {
     if (!attemptId) {
-      e.preventDefault();
       console.error('[BUY-CERTIFICATE] No attemptId provided');
       setErrorMessage('ID do teste não encontrado.');
       setButtonState('error');
       return;
     }
-    
-    console.log('[BUY-CERTIFICATE] Initiating checkout redirect for attempt:', attemptId);
-    setButtonState('redirecting');
-    onPaymentInitiated?.();
-    // Navigation happens via anchor href
+
+    setButtonState('processing');
+    setErrorMessage(null);
+
+    try {
+      console.log('[BUY-CERTIFICATE] Initiating checkout for attempt:', attemptId);
+      
+      // Use create-checkout edge function which properly handles auth
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { 
+          attemptId, 
+          purchaseType: 'certificate',
+          paymentMethod: 'card'
+        }
+      });
+
+      if (error) {
+        console.error('[BUY-CERTIFICATE] Edge function error:', error);
+        throw new Error(error.message || 'Erro ao criar sessão de pagamento');
+      }
+
+      if (!data?.url) {
+        console.error('[BUY-CERTIFICATE] No URL returned:', data);
+        throw new Error('URL de checkout não retornada');
+      }
+
+      console.log('[BUY-CERTIFICATE] Checkout URL received, redirecting...');
+      setButtonState('redirecting');
+      onPaymentInitiated?.();
+
+      // Redirect to Stripe Checkout
+      // Use window.top for iframe environments (Lovable preview)
+      const targetWindow = window.top || window;
+      targetWindow.location.href = data.url;
+
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao processar checkout';
+      console.error('[BUY-CERTIFICATE] Checkout error:', err);
+      setErrorMessage(message);
+      setButtonState('error');
+    }
   };
 
   const handleRetry = () => {
@@ -54,6 +85,7 @@ const BuyCertificateButton = ({
     setErrorMessage(null);
   };
 
+  // Certificate already purchased - show access button
   if (hasCertificate) {
     return (
       <Card className={`border-2 border-amber-500/50 bg-amber-500/5 ${className}`}>
@@ -73,7 +105,7 @@ const BuyCertificateButton = ({
             <Button
               variant="hero"
               className="w-full sm:w-auto min-h-[48px]"
-              onClick={() => window.location.href = `/certificado/${attemptId}`}
+              onClick={() => navigate(`/certificado/${attemptId}`)}
             >
               <Award className="h-5 w-5 mr-2" />
               Ver Certificado
@@ -84,7 +116,7 @@ const BuyCertificateButton = ({
     );
   }
 
-  // Show error state
+  // Error state
   if (buttonState === 'error') {
     return (
       <Card className={`border-2 border-destructive/30 ${className}`}>
@@ -108,34 +140,28 @@ const BuyCertificateButton = ({
     );
   }
 
-  // Show redirecting state
-  if (buttonState === 'redirecting') {
+  // Processing/Redirecting state
+  if (buttonState === 'processing' || buttonState === 'redirecting') {
     return (
       <Card className={`border-2 border-primary/30 ${className}`}>
         <CardContent className="p-4 md:p-6">
           <div className="w-full p-4 rounded-lg bg-primary/10 border border-primary/30 text-center">
             <div className="flex items-center justify-center gap-2 text-primary">
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span className="font-medium">Redirecionando para pagamento...</span>
+              <span className="font-medium">
+                {buttonState === 'processing' ? 'Preparando checkout...' : 'Redirecionando para pagamento...'}
+              </span>
             </div>
             <p className="text-sm text-muted-foreground mt-2">
               Aguarde, você será direcionado para o checkout seguro.
             </p>
-            <a
-              href={redirectUrl}
-              target="_top"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-primary underline mt-3"
-            >
-              <ExternalLink className="h-3 w-3" />
-              Clique aqui se não for redirecionado
-            </a>
           </div>
         </CardContent>
       </Card>
     );
   }
 
+  // Default idle state - purchase button
   return (
     <Card className={`border-2 border-amber-500/30 bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20 ${className}`}>
       <CardHeader className="pb-3">
@@ -186,20 +212,18 @@ const BuyCertificateButton = ({
           </li>
         </ul>
 
-        {/* Use anchor tag for reliable server-side redirect */}
-        <a
-          href={redirectUrl}
-          target="_top"
-          rel="noopener noreferrer"
-          onClick={handleClick}
-          className="flex items-center justify-center w-full min-h-[52px] text-base font-semibold bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg rounded-lg text-white px-4 py-3 no-underline"
+        {/* Purchase Button */}
+        <Button
+          onClick={handleCheckout}
+          className="w-full min-h-[52px] text-base font-semibold bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90 active:scale-[0.98] transition-all shadow-lg"
+          disabled={buttonState !== 'idle'}
         >
           <Award className="h-5 w-5 mr-2" />
           <span className="flex flex-col sm:flex-row sm:items-center sm:gap-1.5">
             <span>Quero meu Certificado</span>
             <span className="text-sm opacity-90">R$ {CERTIFICATE_PRICE.toFixed(2).replace('.', ',')}</span>
           </span>
-        </a>
+        </Button>
       </CardContent>
     </Card>
   );
