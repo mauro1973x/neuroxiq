@@ -55,8 +55,7 @@ const UnlockPremiumButton = ({
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { 
           attemptId, 
-          purchaseType: 'premium_report', 
-          paymentMethod: 'card' 
+          purchaseType: 'premium_report'
         }
       });
 

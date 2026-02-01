@@ -142,17 +142,13 @@ serve(async (req) => {
       },
     };
 
-    // Add PIX payment method for Brazil
-    if (paymentMethod === 'pix') {
-      sessionConfig.payment_method_types = ['pix'];
-      sessionConfig.payment_method_options = {
-        pix: {
-          expires_after_seconds: 1800, // 30 minutes
-        },
-      };
-    } else {
-      sessionConfig.payment_method_types = ['card'];
-    }
+    // Support both card and PIX payment methods for Brazil
+    sessionConfig.payment_method_types = ['card', 'pix'];
+    sessionConfig.payment_method_options = {
+      pix: {
+        expires_after_seconds: 1800, // 30 minutes
+      },
+    };
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
     logStep("Checkout session created", { sessionId: session.id });
