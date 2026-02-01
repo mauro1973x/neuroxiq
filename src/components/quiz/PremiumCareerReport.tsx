@@ -1,6 +1,5 @@
-import { Briefcase, Download, Target, Lightbulb, Users, Globe, AlertTriangle, FileText, Award, TrendingUp, Compass } from 'lucide-react';
+import { Briefcase, Target, Lightbulb, Users, Globe, AlertTriangle, FileText, Award, TrendingUp, Compass } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { 
@@ -10,6 +9,7 @@ import {
   categoryDescriptions,
   categoryCareerExamples
 } from '@/data/careerQuestions';
+import DownloadPdfButton from './DownloadPdfButton';
 
 interface CategoryScore {
   category: CareerCategory;
@@ -166,12 +166,11 @@ const PremiumCareerReport = ({
     year: 'numeric',
   });
 
-  const handleDownloadPDF = () => {
-    console.log('Download PDF');
-  };
+  // Get career recommendations
+  const allCareers = careerSuggestions.careers;
 
   return (
-    <div className="space-y-6 print:space-y-4">
+    <div className="space-y-6 print:space-y-4 pb-24 md:pb-8">
       {/* Header */}
       <Card className="glass-card overflow-hidden">
         <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white p-6">
@@ -185,15 +184,20 @@ const PremiumCareerReport = ({
                 <p className="opacity-90">Avaliação Vocacional RIASEC – Modelo Holland</p>
               </div>
             </div>
-            <Button 
-              variant="secondary" 
-              size="sm" 
-              className="print:hidden"
-              onClick={handleDownloadPDF}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Baixar PDF
-            </Button>
+            <DownloadPdfButton
+              variant="header"
+              testType="career"
+              testName="Orientação de Carreira"
+              score={totalScore}
+              maxScore={maxPossibleScore}
+              resultBandName={careerSuggestions.title}
+              description={resultBand.premiumDescription}
+              careerAreas={allCareers}
+              additionalInfo={{
+                'Código Holland': hollandCode,
+                'Perfil': topCategories.map(c => categoryLabels[c]).join(' + '),
+              }}
+            />
           </div>
         </div>
 
@@ -481,6 +485,22 @@ const PremiumCareerReport = ({
         <p>Relatório gerado automaticamente pela plataforma NEUROX.</p>
         <p className="mt-1">Data de geração: {formattedDate} | Modelo: Holland RIASEC</p>
       </div>
+
+      {/* Mobile Sticky Download Button */}
+      <DownloadPdfButton
+        variant="sticky"
+        testType="career"
+        testName="Orientação de Carreira"
+        score={totalScore}
+        maxScore={maxPossibleScore}
+        resultBandName={careerSuggestions.title}
+        description={resultBand.premiumDescription}
+        careerAreas={allCareers}
+        additionalInfo={{
+          'Código Holland': hollandCode,
+          'Perfil': topCategories.map(c => categoryLabels[c]).join(' + '),
+        }}
+      />
     </div>
   );
 };

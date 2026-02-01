@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { PoliticalResultBand, calculateCategoryScores, spectrumLabels, categoryLabels } from '@/data/politicalQuestions';
+import DownloadPdfButton from './DownloadPdfButton';
 
 interface PremiumPoliticalReportProps {
   resultBand: PoliticalResultBand;
@@ -44,8 +45,8 @@ const PremiumPoliticalReport = ({
   };
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
-      {/* Header */}
+    <div className="space-y-8 max-w-4xl mx-auto pb-24 md:pb-8">
+      {/* Header with Desktop Download Button */}
       <div className="text-center space-y-4">
         <div className="flex justify-center">
           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shadow-xl">
@@ -62,6 +63,27 @@ const PremiumPoliticalReport = ({
           <p className="text-muted-foreground mt-2">
             Preparado para {userName}
           </p>
+          
+          {/* Desktop Download Button */}
+          <div className="mt-4 hidden md:flex justify-center">
+            <DownloadPdfButton
+              variant="inline"
+              testType="political"
+              testName="Orientação Política"
+              score={totalScore}
+              maxScore={100}
+              resultBandName={resultBand.name}
+              description={resultBand.premium_description}
+              strengths={resultBand.strengths || []}
+              challenges={resultBand.challenges || []}
+              careerAreas={resultBand.compatible_careers || []}
+              additionalInfo={{
+                'Eixo Econômico': resultBand.economic_axis,
+                'Eixo Social': resultBand.social_axis,
+                'Eixo de Autoridade': resultBand.authority_axis,
+              }}
+            />
+          </div>
         </div>
       </div>
 
@@ -315,6 +337,25 @@ const PremiumPoliticalReport = ({
         <p>Relatório gerado em {new Date().toLocaleDateString('pt-BR')}</p>
         <p className="font-mono text-xs">ID: {attemptId}</p>
       </div>
+
+      {/* Mobile Sticky Download Button */}
+      <DownloadPdfButton
+        variant="sticky"
+        testType="political"
+        testName="Orientação Política"
+        score={totalScore}
+        maxScore={100}
+        resultBandName={resultBand.name}
+        description={resultBand.premium_description}
+        strengths={resultBand.strengths || []}
+        challenges={resultBand.challenges || []}
+        careerAreas={resultBand.compatible_careers || []}
+        additionalInfo={{
+          'Eixo Econômico': resultBand.economic_axis,
+          'Eixo Social': resultBand.social_axis,
+          'Eixo de Autoridade': resultBand.authority_axis,
+        }}
+      />
     </div>
   );
 };
