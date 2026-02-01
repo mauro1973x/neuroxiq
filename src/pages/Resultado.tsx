@@ -313,9 +313,21 @@ const Resultado = () => {
 
   // Render payment status alerts
   const renderPaymentAlerts = () => {
+    const canceled = searchParams.get('canceled') || searchParams.get('cancelled') || paymentParam === 'cancel';
+    
     return (
       <>
-        {isPolling && (
+        {isVerifying && (
+          <Alert className="mb-6 max-w-2xl mx-auto border-primary/50 bg-primary/5">
+            <RefreshCw className="h-4 w-4 animate-spin text-primary" />
+            <AlertTitle className="text-primary">Verificando pagamento...</AlertTitle>
+            <AlertDescription>
+              Aguarde enquanto confirmamos seu pagamento.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {isPolling && !isVerifying && (
           <Alert className="mb-6 max-w-2xl mx-auto border-primary/50 bg-primary/5">
             <RefreshCw className="h-4 w-4 animate-spin text-primary" />
             <AlertTitle className="text-primary">Confirmando pagamento...</AlertTitle>
@@ -338,43 +350,63 @@ const Resultado = () => {
         {pollingError && (
           <Alert className="mb-6 max-w-2xl mx-auto border-warning bg-warning/10">
             <Clock className="h-4 w-4 text-warning" />
-            <AlertTitle className="text-warning">Aguardando Confirmação</AlertTitle>
-            <AlertDescription>
-              {pollingError}
-              <Button
-                variant="link"
-                className="p-0 h-auto ml-2"
-                onClick={() => window.location.reload()}
-              >
-                Atualizar página
-              </Button>
+            <AlertTitle className="text-warning">Pagamento ainda não confirmado</AlertTitle>
+            <AlertDescription className="flex flex-col gap-2">
+              <span>{pollingError}</span>
+              <div className="flex gap-2 mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={startPolling}
+                >
+                  <RefreshCw className="h-4 w-4 mr-1" />
+                  Verificar novamente
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.location.reload()}
+                >
+                  Atualizar página
+                </Button>
+              </div>
             </AlertDescription>
           </Alert>
         )}
 
-        {paymentStatus === 'pending' && !isPolling && !paymentConfirmed && (
+        {paymentStatus === 'pending' && !isPolling && !paymentConfirmed && !isVerifying && (
           <Alert className="mb-6 max-w-2xl mx-auto border-warning bg-warning/10">
             <Clock className="h-4 w-4 text-warning" />
             <AlertTitle className="text-warning">Pagamento Pendente</AlertTitle>
-            <AlertDescription>
-              Aguardando confirmação do pagamento. Se você pagou via PIX, pode levar alguns minutos.
+            <AlertDescription className="flex flex-col gap-2">
+              <span>Aguardando confirmação do pagamento. Se você pagou via PIX, pode levar alguns minutos.</span>
               <Button
-                variant="link"
-                className="p-0 h-auto ml-2"
+                variant="outline"
+                size="sm"
+                className="w-fit mt-2"
                 onClick={startPolling}
               >
+                <RefreshCw className="h-4 w-4 mr-1" />
                 Verificar novamente
               </Button>
             </AlertDescription>
           </Alert>
         )}
 
-        {paymentParam === 'cancelled' && (
+        {canceled && (
           <Alert className="mb-6 max-w-2xl mx-auto" variant="destructive">
             <XCircle className="h-4 w-4" />
             <AlertTitle>Pagamento Cancelado</AlertTitle>
-            <AlertDescription>
-              O pagamento foi cancelado. Você pode tentar novamente abaixo.
+            <AlertDescription className="flex flex-col gap-2">
+              <span>O pagamento foi cancelado. Você pode tentar novamente abaixo.</span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-fit mt-2 border-destructive/50 text-destructive hover:bg-destructive/10"
+                onClick={() => navigate(`/resultado/${attemptId}`, { replace: true })}
+              >
+                Fechar aviso
+              </Button>
             </AlertDescription>
           </Alert>
         )}
