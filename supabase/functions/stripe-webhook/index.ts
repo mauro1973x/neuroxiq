@@ -130,6 +130,28 @@ serve(async (req) => {
         break;
       }
 
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        logStep("Payment intent succeeded", { 
+          paymentIntentId: paymentIntent.id,
+          amount: paymentIntent.amount,
+          status: paymentIntent.status
+        });
+        // Payment intents are typically handled via checkout.session.completed
+        // but logging here for visibility
+        break;
+      }
+
+      case 'payment_intent.processing': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        logStep("Payment intent processing (async payment like PIX)", { 
+          paymentIntentId: paymentIntent.id,
+          amount: paymentIntent.amount
+        });
+        // This is informational - actual unlock happens on checkout.session events
+        break;
+      }
+
       default:
         logStep("Unhandled event type", { type: event.type });
     }
