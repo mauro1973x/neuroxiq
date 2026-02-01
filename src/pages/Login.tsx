@@ -45,30 +45,30 @@ const Login = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 flex items-center justify-center py-12 px-4">
+      <main className="flex-1 flex items-center justify-center py-8 md:py-12 px-4">
         <div className="w-full max-w-md">
-          <div className="glass-card p-8">
-            <div className="text-center mb-8">
-              <h1 className="font-display text-2xl font-bold mb-2">
+          <div className="glass-card p-6 md:p-8">
+            <div className="text-center mb-6 md:mb-8">
+              <h1 className="font-display text-xl md:text-2xl font-bold mb-2">
                 Bem-vindo de Volta
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-sm md:text-base text-muted-foreground">
                 Entre na sua conta para continuar
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-sm md:text-base">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="seu@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 md:pl-11 min-h-[48px] text-base"
                     required
                   />
                 </div>
@@ -76,7 +76,7 @@ const Login = () => {
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Senha</Label>
+                  <Label htmlFor="password" className="text-sm md:text-base">Senha</Label>
                   <Link
                     to="/recuperar-senha"
                     className="text-sm text-primary hover:underline"
@@ -85,25 +85,26 @@ const Login = () => {
                   </Link>
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Sua senha"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10"
+                    className="pl-10 md:pl-11 pr-11 min-h-[48px] text-base"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
+                      <EyeOff className="h-5 w-5" />
                     ) : (
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-5 w-5" />
                     )}
                   </button>
                 </div>
@@ -112,12 +113,12 @@ const Login = () => {
               <Button
                 type="submit"
                 variant="hero"
-                className="w-full"
+                className="w-full min-h-[52px] text-base"
                 size="lg"
                 disabled={isLoading}
               >
                 {isLoading ? 'Entrando...' : 'Entrar'}
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-5 w-5" />
               </Button>
             </form>
 

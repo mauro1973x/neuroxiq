@@ -26,22 +26,22 @@ const CareerTestQuestion = ({
   totalQuestions
 }: CareerTestQuestionProps) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 md:space-y-6">
       {/* Question Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm md:text-base text-muted-foreground">
           Questão {questionNumber} de {totalQuestions}
         </span>
         <Badge 
           variant="outline" 
-          className={categoryColors[question.category]}
+          className={`text-xs font-medium ${categoryColors[question.category]}`}
         >
           {categoryLabels[question.category]}
         </Badge>
       </div>
 
       {/* Question Text */}
-      <h2 className="text-xl md:text-2xl font-semibold leading-relaxed">
+      <h2 className="text-lg md:text-xl lg:text-2xl font-semibold leading-relaxed">
         {question.question}
       </h2>
 
@@ -51,21 +51,21 @@ const CareerTestQuestion = ({
           <button
             key={index}
             onClick={() => onAnswerSelect(index)}
-            className={`w-full p-4 rounded-lg border-2 text-left transition-all duration-200 ${
+            className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 min-h-[56px] active:scale-[0.98] ${
               selectedAnswer === index
                 ? 'border-primary bg-primary/10 shadow-md'
                 : 'border-border hover:border-primary/50 hover:bg-muted/50'
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              <div className={`flex-shrink-0 w-9 h-9 md:w-8 md:h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                 selectedAnswer === index
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground'
               }`}>
                 {String.fromCharCode(65 + index)}
               </div>
-              <span className={selectedAnswer === index ? 'font-medium' : ''}>
+              <span className={`text-base leading-relaxed ${selectedAnswer === index ? 'font-medium' : ''}`}>
                 {option}
               </span>
             </div>

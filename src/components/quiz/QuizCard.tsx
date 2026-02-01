@@ -10,14 +10,14 @@ interface QuizCardProps {
 
 const QuizCard = ({ quiz }: QuizCardProps) => {
   return (
-    <div className="group glass-card p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col">
+    <div className="group glass-card p-5 md:p-6 hover:shadow-xl transition-all duration-300 md:hover:-translate-y-1 flex flex-col active:scale-[0.98]">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
-        <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${TEST_TYPE_COLORS[quiz.test_type]} text-2xl`}>
+        <div className={`flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-xl bg-gradient-to-br ${TEST_TYPE_COLORS[quiz.test_type]} text-xl md:text-2xl`}>
           {TEST_TYPE_ICONS[quiz.test_type]}
         </div>
         {quiz.is_premium && (
-          <span className="premium-badge">
+          <span className="premium-badge text-xs">
             <Star className="h-3 w-3" />
             Premium
           </span>
@@ -26,24 +26,24 @@ const QuizCard = ({ quiz }: QuizCardProps) => {
 
       {/* Content */}
       <div className="flex-1">
-        <Badge variant="secondary" className="mb-3">
+        <Badge variant="secondary" className="mb-2.5 md:mb-3 text-xs">
           {TEST_TYPE_LABELS[quiz.test_type]}
         </Badge>
-        <h3 className="font-display text-xl font-bold mb-2 group-hover:text-primary transition-colors">
+        <h3 className="font-display text-lg md:text-xl font-bold mb-2 group-hover:text-primary transition-colors leading-tight">
           {quiz.title}
         </h3>
-        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+        <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
           {quiz.description}
         </p>
       </div>
 
       {/* Stats */}
       <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <Clock className="h-4 w-4" />
           <span>{quiz.duration_minutes} min</span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <Users className="h-4 w-4" />
           <span>{quiz.question_count} questões</span>
         </div>
@@ -58,7 +58,10 @@ const QuizCard = ({ quiz }: QuizCardProps) => {
         quiz.test_type === 'career' ? '/teste-carreira' :
         `/teste/${quiz.id}`
       }>
-        <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+        <Button 
+          variant="outline" 
+          className="w-full min-h-[48px] text-base group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+        >
           Começar Teste
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </Button>

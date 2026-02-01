@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Loader2, Lock } from 'lucide-react';
+import { Loader2, Lock, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -14,11 +14,11 @@ interface UnlockPremiumButtonProps {
 }
 
 const testTypeLabels: Record<TestType, string> = {
-  iq: 'Relatório de QI Completo',
-  emotional: 'Relatório Emocional Completo',
-  personality: 'Relatório de Personalidade Completo',
-  career: 'Relatório com Sugestões de Carreira',
-  political: 'Relatório Político Completo',
+  iq: 'Relatório de QI',
+  emotional: 'Relatório Emocional',
+  personality: 'Relatório de Personalidade',
+  career: 'Relatório de Carreira',
+  political: 'Relatório Político',
   unknown: 'Relatório Completo'
 };
 
@@ -90,18 +90,21 @@ const UnlockPremiumButton = ({
     <Button
       onClick={handleUnlockClick}
       disabled={isUnlocking}
-      className={`w-full bg-gradient-to-r ${gradient} hover:opacity-90 ${className}`}
+      className={`w-full min-h-[52px] md:min-h-[48px] text-base md:text-base font-semibold bg-gradient-to-r ${gradient} hover:opacity-90 active:scale-[0.98] transition-all shadow-lg ${className}`}
       size="lg"
     >
       {isUnlocking ? (
         <>
-          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          <Loader2 className="h-5 w-5 animate-spin mr-2" />
           Processando...
         </>
       ) : (
         <>
-          <Lock className="h-4 w-4 mr-2" />
-          Desbloquear {label} - R$ {PREMIUM_PRICE.toFixed(2).replace('.', ',')}
+          <Sparkles className="h-5 w-5 mr-2" />
+          <span className="flex flex-col md:flex-row md:items-center md:gap-1.5">
+            <span>Desbloquear {label}</span>
+            <span className="text-sm md:text-base opacity-90">R$ {PREMIUM_PRICE.toFixed(2).replace('.', ',')}</span>
+          </span>
         </>
       )}
     </Button>
