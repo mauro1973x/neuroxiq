@@ -245,10 +245,14 @@ const Certificado = () => {
 
   // Derive test name and score
   const testName = attempt.test_name || 'Avaliação Cognitiva';
-  const scoreLabel = attempt.score_label || 'Resultado';
-  const scoreValue = attempt.score_value || 
-    (attempt.iq_estimated ? String(attempt.iq_estimated) : 
-    (attempt.result_category || String(attempt.total_score || 0)));
+  
+  // For IQ test, use "QI estimado" as the label with the iq_estimated value
+  const isIQTest = testName.toLowerCase().includes('qi') || testName.toLowerCase().includes('inteligência');
+  const scoreLabel = isIQTest ? 'QI estimado' : (attempt.score_label || 'Resultado');
+  const scoreValue = isIQTest && attempt.iq_estimated 
+    ? String(attempt.iq_estimated) 
+    : (attempt.score_value || attempt.result_category || String(attempt.total_score || 0));
+  
   const userName = profile?.full_name || user?.email?.split('@')[0] || 'Participante';
   const issuedDate = attempt.certificate_issued_at 
     ? format(new Date(attempt.certificate_issued_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })

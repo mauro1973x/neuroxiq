@@ -98,7 +98,7 @@ const CertificateTemplate = ({
           {/* Title - Certificado de Avaliação Cognitiva */}
           <div 
             className="absolute text-center w-full"
-            style={{ top: '80px' }}
+            style={{ top: '100px' }}
           >
             <h1 
               className="text-2xl font-bold tracking-wide"
@@ -116,7 +116,7 @@ const CertificateTemplate = ({
           {/* Subtitle - Conferido a */}
           <div 
             className="absolute text-center w-full"
-            style={{ top: '140px' }}
+            style={{ top: '155px' }}
           >
             <p 
               className="text-sm"
@@ -133,7 +133,7 @@ const CertificateTemplate = ({
           {/* Dynamic Field: User Name */}
           <div 
             className="absolute text-center w-full px-16"
-            style={{ top: '170px' }}
+            style={{ top: '180px' }}
           >
             <p 
               className="text-3xl font-bold"
@@ -149,7 +149,7 @@ const CertificateTemplate = ({
           {/* Dynamic Field: Test Description */}
           <div 
             className="absolute text-center w-full px-20"
-            style={{ top: '230px' }}
+            style={{ top: '235px' }}
           >
             <p 
               className="text-sm leading-relaxed"
@@ -183,23 +183,33 @@ const CertificateTemplate = ({
           {/* Dynamic Field: Score Result */}
           <div 
             className="absolute text-center w-full"
-            style={{ top: '340px' }}
+            style={{ top: '345px' }}
           >
             <div 
-              className="inline-block px-8 py-3 rounded-lg"
+              className="inline-flex flex-col items-center justify-center px-10 py-4 rounded-lg"
               style={{
                 background: 'linear-gradient(135deg, rgba(180, 140, 80, 0.15) 0%, rgba(160, 120, 60, 0.1) 100%)',
                 border: '2px solid rgba(180, 140, 80, 0.3)',
+                minWidth: '200px',
               }}
             >
               <p 
-                className="text-2xl font-bold"
+                className="text-sm mb-1"
+                style={{ 
+                  fontFamily: 'Georgia, serif',
+                  color: '#4a5568',
+                }}
+              >
+                {scoreLabel}
+              </p>
+              <p 
+                className="text-3xl font-bold"
                 style={{ 
                   fontFamily: 'Georgia, serif',
                   color: '#1a365d',
                 }}
               >
-                {scoreLabel}: {scoreValue}
+                {scoreValue}
               </p>
             </div>
           </div>
