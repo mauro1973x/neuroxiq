@@ -114,6 +114,9 @@ const TesteCarreira = () => {
           total_score: totalScore,
           result_category: resultBand.name,
           result_description: `${resultBand.freeDescription} Perfil dominante: ${hollandCode}.`,
+          test_name: 'Teste de Orientação de Carreira',
+          score_label: 'Perfil Holland',
+          score_value: hollandCode,
         })
         .eq('id', attemptId);
 

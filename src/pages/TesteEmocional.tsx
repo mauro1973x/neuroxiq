@@ -115,6 +115,9 @@ const TesteEmocional = () => {
           total_score: score,
           result_category: resultBand.name,
           result_description: resultBand.freeDescription,
+          test_name: 'Teste de Inteligência Emocional',
+          score_label: 'Nível de QE',
+          score_value: resultBand.name,
         })
         .eq('id', attemptId);
 

@@ -124,6 +124,9 @@ const TestePolitico = () => {
           total_score: totalScore,
           result_category: resultBand?.name || 'Indefinido',
           result_description: resultBand?.free_description || '',
+          test_name: 'Teste de Orientação Político-Ideológica',
+          score_label: 'Orientação',
+          score_value: resultBand?.name || 'Indefinido',
         })
         .eq('id', attemptId);
 

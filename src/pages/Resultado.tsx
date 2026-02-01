@@ -16,6 +16,7 @@ import PremiumPersonalityReport from '@/components/quiz/PremiumPersonalityReport
 import PremiumEmotionalReport from '@/components/quiz/PremiumEmotionalReport';
 import PremiumPoliticalReport from '@/components/quiz/PremiumPoliticalReport';
 import UnlockPremiumButton from '@/components/quiz/UnlockPremiumButton';
+import BuyCertificateButton from '@/components/quiz/BuyCertificateButton';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePaymentPolling } from '@/hooks/usePaymentPolling';
@@ -57,6 +58,8 @@ interface AttemptData {
   result_description: string | null;
   has_premium_access: boolean | null;
   has_certificate: boolean | null;
+  certificate_payment_status: string | null;
+  test_name: string | null;
   payment_status: string | null;
   completed_at: string | null;
 }
@@ -382,11 +385,22 @@ const Resultado = () => {
           {renderPaymentAlerts()}
 
           {hasPremiumAccess ? (
-            <PremiumReport
-              score={score}
-              totalQuestions={30}
-              resultBand={iqResultBand}
-            />
+            <div className="space-y-8">
+              <PremiumReport
+                score={score}
+                totalQuestions={30}
+                resultBand={iqResultBand}
+              />
+              
+              {/* Certificate CTA Section */}
+              <div className="max-w-2xl mx-auto">
+                <BuyCertificateButton
+                  attemptId={attemptId!}
+                  testName={attempt.test_name || 'Teste de QI'}
+                  hasCertificate={attempt.has_certificate || false}
+                />
+              </div>
+            </div>
           ) : (
             <div className="space-y-8">
               <IQTestResult
@@ -473,13 +487,24 @@ const Resultado = () => {
           {renderPaymentAlerts()}
 
           {hasPremiumAccess ? (
-            <PremiumCareerReport
-              totalScore={score}
-              categoryScores={careerData.categoryScores}
-              topCategories={careerData.topCategories}
-              hollandCode={careerData.hollandCode}
-              resultBand={careerResultBand}
-            />
+            <div className="space-y-8">
+              <PremiumCareerReport
+                totalScore={score}
+                categoryScores={careerData.categoryScores}
+                topCategories={careerData.topCategories}
+                hollandCode={careerData.hollandCode}
+                resultBand={careerResultBand}
+              />
+              
+              {/* Certificate CTA Section */}
+              <div className="max-w-2xl mx-auto">
+                <BuyCertificateButton
+                  attemptId={attemptId!}
+                  testName={attempt.test_name || 'Teste de Orientação de Carreira'}
+                  hasCertificate={attempt.has_certificate || false}
+                />
+              </div>
+            </div>
           ) : (
             <div className="space-y-8">
               <Card className="glass-card overflow-hidden">
@@ -580,12 +605,23 @@ const Resultado = () => {
           {renderPaymentAlerts()}
 
           {hasPremiumAccess ? (
-            <PremiumPersonalityReport
-              totalScore={score}
-              categoryScores={personalityData.categoryScores}
-              dominantTraits={personalityData.dominantTraits}
-              resultBand={personalityResultBand}
-            />
+            <div className="space-y-8">
+              <PremiumPersonalityReport
+                totalScore={score}
+                categoryScores={personalityData.categoryScores}
+                dominantTraits={personalityData.dominantTraits}
+                resultBand={personalityResultBand}
+              />
+              
+              {/* Certificate CTA Section */}
+              <div className="max-w-2xl mx-auto">
+                <BuyCertificateButton
+                  attemptId={attemptId!}
+                  testName={attempt.test_name || 'Teste de Personalidade'}
+                  hasCertificate={attempt.has_certificate || false}
+                />
+              </div>
+            </div>
           ) : (
             <div className="space-y-8">
               <Card className="glass-card overflow-hidden">
@@ -697,13 +733,24 @@ const Resultado = () => {
           {renderPaymentAlerts()}
 
           {hasPremiumAccess ? (
-            <PremiumEmotionalReport
-              totalScore={score}
-              categoryScores={emotionalData.categoryScores}
-              dominantCompetencies={emotionalData.dominantCompetencies}
-              estimatedEQ={emotionalData.estimatedEQ}
-              resultBand={emotionalResultBand}
-            />
+            <div className="space-y-8">
+              <PremiumEmotionalReport
+                totalScore={score}
+                categoryScores={emotionalData.categoryScores}
+                dominantCompetencies={emotionalData.dominantCompetencies}
+                estimatedEQ={emotionalData.estimatedEQ}
+                resultBand={emotionalResultBand}
+              />
+              
+              {/* Certificate CTA Section */}
+              <div className="max-w-2xl mx-auto">
+                <BuyCertificateButton
+                  attemptId={attemptId!}
+                  testName={attempt.test_name || 'Teste de Inteligência Emocional'}
+                  hasCertificate={attempt.has_certificate || false}
+                />
+              </div>
+            </div>
           ) : (
             <div className="space-y-8">
               <Card className="glass-card overflow-hidden">
@@ -795,13 +842,24 @@ const Resultado = () => {
           {renderPaymentAlerts()}
 
           {hasPremiumAccess ? (
-            <PremiumPoliticalReport
-              resultBand={politicalResultBand}
-              totalScore={score}
-              answers={mockAnswers}
-              attemptId={attemptId!}
-              userName={user?.user_metadata?.full_name || 'Participante'}
-            />
+            <div className="space-y-8">
+              <PremiumPoliticalReport
+                resultBand={politicalResultBand}
+                totalScore={score}
+                answers={mockAnswers}
+                attemptId={attemptId!}
+                userName={user?.user_metadata?.full_name || 'Participante'}
+              />
+              
+              {/* Certificate CTA Section */}
+              <div className="max-w-2xl mx-auto">
+                <BuyCertificateButton
+                  attemptId={attemptId!}
+                  testName={attempt.test_name || 'Teste de Orientação Político-Ideológica'}
+                  hasCertificate={attempt.has_certificate || false}
+                />
+              </div>
+            </div>
           ) : (
             <div className="space-y-8">
               <Card className="glass-card overflow-hidden">

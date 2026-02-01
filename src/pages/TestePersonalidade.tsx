@@ -112,6 +112,9 @@ const TestePersonalidade = () => {
           total_score: totalScore,
           result_category: resultBand.name,
           result_description: resultBand.freeDescription,
+          test_name: 'Teste de Personalidade',
+          score_label: 'Perfil OCEAN',
+          score_value: resultBand.name,
         })
         .eq('id', attemptId);
 

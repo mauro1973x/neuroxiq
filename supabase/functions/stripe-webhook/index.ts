@@ -177,8 +177,40 @@ async function handleSuccessfulPayment(
     .eq('id', attemptId)
     .single();
 
-  if (existingAttempt?.has_premium_access) {
-    logStep("Already unlocked, skipping duplicate processing", { attemptId });
+  // Build update data for test attempt based on purchase type
+  const updateFields: Record<string, unknown> = {};
+  
+  if (purchaseType === 'premium_report' || purchaseType === 'bundle') {
+    if (existingAttempt?.has_premium_access) {
+      logStep("Report already unlocked, skipping", { attemptId });
+    } else {
+      updateFields.has_premium_access = true;
+      updateFields.payment_status = 'approved';
+      updateFields.purchased_at = new Date().toISOString();
+      updateFields.premium_unlocked_at = new Date().toISOString();
+    }
+  }
+  
+  if (purchaseType === 'certificate' || purchaseType === 'bundle') {
+    if (existingAttempt?.has_certificate) {
+      logStep("Certificate already unlocked, skipping", { attemptId });
+    } else {
+      // Generate unique validation code
+      const validationCode = 'NX-' + [...Array(10)].map(() => 
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 36)]
+      ).join('');
+      
+      updateFields.has_certificate = true;
+      updateFields.certificate_payment_status = 'paid';
+      updateFields.certificate_issued_at = new Date().toISOString();
+      updateFields.validation_code = validationCode;
+      updateFields.stripe_certificate_session_id = session.id;
+    }
+  }
+
+  // Only update if there are fields to update
+  if (Object.keys(updateFields).length === 0) {
+    logStep("No updates needed, already processed", { attemptId, purchaseType });
     return;
   }
 
@@ -191,20 +223,6 @@ async function handleSuccessfulPayment(
     })
     .eq('stripe_checkout_session_id', session.id);
 
-  // Build update data for test attempt
-  const updateFields: Record<string, unknown> = {
-    payment_status: 'approved',
-    purchased_at: new Date().toISOString(),
-    premium_unlocked_at: new Date().toISOString(),
-  };
-
-  if (purchaseType === 'premium_report' || purchaseType === 'bundle') {
-    updateFields.has_premium_access = true;
-  }
-  if (purchaseType === 'certificate' || purchaseType === 'bundle') {
-    updateFields.has_certificate = true;
-  }
-
   const { error: attemptError } = await supabase
     .from('test_attempts')
     .update(updateFields)
@@ -213,6 +231,6 @@ async function handleSuccessfulPayment(
   if (attemptError) {
     logStep("Failed to update attempt", { error: attemptError.message });
   } else {
-    logStep("Access granted successfully via webhook", { attemptId, eventId });
+    logStep("Access granted successfully via webhook", { attemptId, eventId, purchaseType, fields: Object.keys(updateFields) });
   }
 }
