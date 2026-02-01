@@ -1,44 +1,82 @@
 import { useState } from 'react';
-import { Award, Lock, CreditCard, QrCode, Loader2, CheckCircle } from 'lucide-react';
+import { Award, Lock, CreditCard, QrCode, Loader2, CheckCircle, AlertCircle, ExternalLink, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { startCheckout, CheckoutResult, PurchaseType } from '@/lib/checkout';
 
 interface PremiumPaywallProps {
   attemptId: string;
   onPaymentSuccess?: () => void;
 }
 
+type ButtonState = 'idle' | 'loading' | 'redirecting' | 'error' | 'fallback';
+
+interface ProductState {
+  state: ButtonState;
+  error: string | null;
+  fallbackUrl: string | null;
+}
+
 const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) => {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState<string | null>(null);
+  const [productStates, setProductStates] = useState<Record<string, ProductState>>({});
 
-  const handleCheckout = async (purchaseType: 'premium_report' | 'certificate' | 'bundle', paymentMethod: 'card' | 'pix' = 'card') => {
-    setIsLoading(`${purchaseType}-${paymentMethod}`);
+  const getProductState = (productId: string): ProductState => {
+    return productStates[productId] || { state: 'idle', error: null, fallbackUrl: null };
+  };
+
+  const updateProductState = (productId: string, updates: Partial<ProductState>) => {
+    setProductStates(prev => ({
+      ...prev,
+      [productId]: { ...getProductState(productId), ...updates }
+    }));
+  };
+
+  const handleCheckout = async (purchaseType: PurchaseType, paymentMethod: 'card' | 'pix' = 'card') => {
+    const productKey = `${purchaseType}-${paymentMethod}`;
     
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { attemptId, purchaseType, paymentMethod }
+    updateProductState(productKey, { state: 'loading', error: null, fallbackUrl: null });
+    
+    // Call centralized checkout function
+    const result: CheckoutResult = await startCheckout({
+      attemptId,
+      purchaseType,
+      paymentMethod
+    });
+
+    if (result.success) {
+      // Navigation initiated successfully
+      updateProductState(productKey, { state: 'redirecting' });
+    } else if (result.fallbackUrl) {
+      // Navigation failed but we have the URL for manual click
+      console.log('[PAYWALL] Navigation failed, showing fallback link');
+      updateProductState(productKey, { 
+        state: 'fallback', 
+        error: result.error || 'Não foi possível redirecionar automaticamente.',
+        fallbackUrl: result.fallbackUrl 
       });
-
-      if (error) throw error;
-
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } catch (error) {
-      console.error('Checkout error:', error);
+    } else {
+      // Complete failure
+      console.error('[PAYWALL] Checkout failed:', result.error);
+      updateProductState(productKey, { 
+        state: 'error', 
+        error: result.error || 'Erro ao processar pagamento' 
+      });
+      
       toast({
         title: 'Erro ao iniciar pagamento',
-        description: 'Tente novamente ou entre em contato com o suporte.',
+        description: result.error || 'Tente novamente ou entre em contato com o suporte.',
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(null);
     }
+  };
+
+  const handleRetry = (productKey: string) => {
+    updateProductState(productKey, { state: 'idle', error: null, fallbackUrl: null });
   };
 
   const products = [
@@ -85,6 +123,117 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
       isBest: true,
     },
   ];
+
+  const renderPaymentButton = (product: typeof products[0], method: 'card' | 'pix') => {
+    const productKey = `${product.id}-${method}`;
+    const productState = getProductState(productKey);
+    const isAnyLoading = Object.values(productStates).some(s => s.state === 'loading' || s.state === 'redirecting');
+
+    // Show fallback link
+    if (productState.state === 'fallback' && productState.fallbackUrl) {
+      return (
+        <div className="space-y-2">
+          <Alert className="border-warning/50 bg-warning/5 py-2">
+            <AlertCircle className="h-3 w-3 text-warning" />
+            <AlertDescription className="ml-2 text-xs">
+              {productState.error}
+            </AlertDescription>
+          </Alert>
+          <a
+            href={productState.fallbackUrl}
+            target="_top"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full min-h-[48px] text-sm font-semibold bg-primary hover:opacity-90 active:scale-[0.98] transition-all rounded-lg text-primary-foreground px-4 py-2"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Abrir Pagamento
+          </a>
+          <Button
+            onClick={() => handleRetry(productKey)}
+            variant="ghost"
+            size="sm"
+            className="w-full text-xs"
+          >
+            <RefreshCw className="h-3 w-3 mr-1" />
+            Tentar novamente
+          </Button>
+        </div>
+      );
+    }
+
+    // Show error state
+    if (productState.state === 'error') {
+      return (
+        <div className="space-y-2">
+          <Alert variant="destructive" className="py-2">
+            <AlertCircle className="h-3 w-3" />
+            <AlertDescription className="ml-2 text-xs">
+              {productState.error}
+            </AlertDescription>
+          </Alert>
+          <Button
+            onClick={() => handleRetry(productKey)}
+            variant="outline"
+            className="w-full min-h-[48px]"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Tentar novamente
+          </Button>
+        </div>
+      );
+    }
+
+    // Show redirecting state
+    if (productState.state === 'redirecting') {
+      return (
+        <div className="w-full p-3 rounded-lg bg-primary/10 border border-primary/30 text-center">
+          <div className="flex items-center justify-center gap-2 text-primary text-sm">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Redirecionando...</span>
+          </div>
+        </div>
+      );
+    }
+
+    // Normal button
+    if (method === 'card') {
+      return (
+        <Button
+          onClick={() => handleCheckout(product.id as PurchaseType, 'card')}
+          disabled={isAnyLoading}
+          className="w-full min-h-[48px] text-base"
+          variant={product.isBest ? 'premium' : 'default'}
+        >
+          {productState.state === 'loading' ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <CreditCard className="h-4 w-4" />
+              Pagar com Cartão
+            </>
+          )}
+        </Button>
+      );
+    } else {
+      return (
+        <Button
+          onClick={() => handleCheckout(product.id as PurchaseType, 'pix')}
+          disabled={isAnyLoading}
+          className="w-full min-h-[48px] text-base"
+          variant="outline"
+        >
+          {productState.state === 'loading' ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <QrCode className="h-4 w-4" />
+              Pagar com PIX
+            </>
+          )}
+        </Button>
+      );
+    }
+  };
 
   return (
     <Card className="border-2 border-accent/50 bg-gradient-to-br from-accent/5 to-background overflow-hidden">
@@ -155,38 +304,10 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="card" className="mt-3">
-                  <Button
-                    onClick={() => handleCheckout(product.id as 'premium_report' | 'certificate' | 'bundle', 'card')}
-                    disabled={isLoading !== null}
-                    className="w-full min-h-[48px] text-base"
-                    variant={product.isBest ? 'premium' : 'default'}
-                  >
-                    {isLoading === `${product.id}-card` ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        <CreditCard className="h-4 w-4" />
-                        Pagar com Cartão
-                      </>
-                    )}
-                  </Button>
+                  {renderPaymentButton(product, 'card')}
                 </TabsContent>
                 <TabsContent value="pix" className="mt-3">
-                  <Button
-                    onClick={() => handleCheckout(product.id as 'premium_report' | 'certificate' | 'bundle', 'pix')}
-                    disabled={isLoading !== null}
-                    className="w-full min-h-[48px] text-base"
-                    variant="outline"
-                  >
-                    {isLoading === `${product.id}-pix` ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        <QrCode className="h-4 w-4" />
-                        Pagar com PIX
-                      </>
-                    )}
-                  </Button>
+                  {renderPaymentButton(product, 'pix')}
                 </TabsContent>
               </Tabs>
             </div>
