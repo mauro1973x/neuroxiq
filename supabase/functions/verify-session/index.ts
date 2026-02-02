@@ -77,7 +77,7 @@ serve(async (req) => {
     // Check current database status
     const { data: attemptData, error: attemptError } = await supabaseAdmin
       .from('test_attempts')
-      .select('has_premium_access, has_certificate, payment_status')
+      .select('has_premium_access, has_certificate, payment_status, certificate_payment_status')
       .eq('id', attemptId)
       .eq('user_id', user.id)
       .single();
@@ -87,13 +87,29 @@ serve(async (req) => {
       throw new Error("Failed to verify payment status");
     }
 
-    // Check if already unlocked via webhook
-    if (attemptData?.has_premium_access === true && attemptData?.payment_status === 'approved') {
-      logStep("Content already unlocked via webhook", { attemptId });
+    // Determine purchase type from session metadata
+    const purchaseType = session.metadata?.purchase_type || 'premium_report';
+    logStep("Purchase type from metadata", { purchaseType });
+
+    // Check if content is already unlocked based on purchase type
+    const isPremiumAlreadyUnlocked = attemptData?.has_premium_access === true && attemptData?.payment_status === 'approved';
+    const isCertificateAlreadyUnlocked = attemptData?.has_certificate === true && attemptData?.certificate_payment_status === 'paid';
+    
+    // For premium_report: check if premium is already unlocked
+    // For certificate: check if certificate is already unlocked
+    // For bundle: check if BOTH are unlocked
+    const isAlreadyUnlocked = 
+      (purchaseType === 'premium_report' && isPremiumAlreadyUnlocked) ||
+      (purchaseType === 'certificate' && isCertificateAlreadyUnlocked) ||
+      (purchaseType === 'bundle' && isPremiumAlreadyUnlocked && isCertificateAlreadyUnlocked);
+
+    if (isAlreadyUnlocked) {
+      logStep("Content already unlocked via webhook", { attemptId, purchaseType });
       return new Response(JSON.stringify({ 
         verified: true,
         alreadyProcessed: true,
         attemptId,
+        purchaseType,
         message: "Payment confirmed and access granted"
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -111,8 +127,7 @@ serve(async (req) => {
         paymentIntent: session.payment_intent
       });
 
-      // Determine purchase type from metadata
-      const purchaseType = session.metadata?.purchase_type || 'premium_report';
+      // purchaseType already defined above from metadata
       const updateFields: Record<string, unknown> = {};
 
       if (purchaseType === 'premium_report' || purchaseType === 'bundle') {
