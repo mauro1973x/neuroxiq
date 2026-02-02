@@ -196,6 +196,7 @@ serve(async (req) => {
           verified: true,
           alreadyProcessed: false,
           attemptId,
+          purchaseType,
           message: "Payment confirmed and access granted"
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
