@@ -164,7 +164,7 @@ const Resultado = () => {
   const [error, setError] = useState<string | null>(null);
 
   const paymentParam = searchParams.get('payment');
-  const sessionId = searchParams.get('session_id');
+  const sessionIdParam = searchParams.get('session_id');
   const [isVerifying, setIsVerifying] = useState(false);
 
   // Use the payment polling hook
@@ -177,9 +177,9 @@ const Resultado = () => {
     startPolling
   } = usePaymentPolling({
     attemptId,
-    sessionId,
+    sessionId: sessionIdParam,
     initialPaymentStatus: attempt?.payment_status || null,
-    enabled: !!(paymentParam === 'success' || sessionId || attempt?.payment_status === 'pending')
+    enabled: !!(paymentParam === 'success' || sessionIdParam || attempt?.payment_status === 'pending')
   });
 
   const fetchAttempt = useCallback(async () => {
@@ -246,22 +246,56 @@ const Resultado = () => {
     }
   }, [attemptId, user]);
 
-  // On payment return, start polling the DATABASE for confirmation
-  // SECURITY: verify-session NO LONGER unlocks content - only checks status
-  // The webhook is the ONLY source of truth for unlocking content
+  // On payment return, call verify-session to unlock content if Stripe confirms paid
+  // This provides a synchronous fallback when webhook is delayed
   useEffect(() => {
-    if (paymentParam === 'success' && sessionId && user && !attempt?.has_premium_access && !isVerifying) {
-      setIsVerifying(true);
-      console.log('[RESULTADO] Payment return detected, starting database polling');
-      
-      // Clean URL params
-      navigate(`/resultado/${attemptId}`, { replace: true });
-      
-      // Start polling the database for webhook confirmation
-      startPolling();
-      setIsVerifying(false);
-    }
-  }, [paymentParam, sessionId, user, attempt?.has_premium_access, isVerifying, navigate, attemptId, startPolling]);
+    const verifyAndUnlock = async () => {
+      if (paymentParam === 'success' && sessionIdParam && user && !attempt?.has_premium_access && !isVerifying) {
+        setIsVerifying(true);
+        console.log('[RESULTADO] Payment return detected, calling verify-session with sessionId:', sessionIdParam);
+        
+        try {
+          // Call verify-session edge function - this will unlock if Stripe shows 'paid'
+          const { data, error: verifyError } = await supabase.functions.invoke('verify-session', {
+            body: { sessionId: sessionIdParam }
+          });
+
+          console.log('[RESULTADO] verify-session response:', data, verifyError);
+
+          if (verifyError) {
+            console.error('[RESULTADO] verify-session error:', verifyError);
+            toast({
+              variant: 'destructive',
+              title: 'Erro ao verificar pagamento',
+              description: 'Tente atualizar a página em alguns segundos.'
+            });
+          } else if (data?.verified) {
+            console.log('[RESULTADO] Payment verified and content unlocked!');
+            toast({
+              title: 'Pagamento Confirmado!',
+              description: 'Seu relatório premium foi liberado.',
+            });
+            // Refetch to get updated data
+            fetchAttempt();
+          } else {
+            console.log('[RESULTADO] Payment not yet confirmed, starting polling');
+            // Payment not yet complete, start polling
+            startPolling();
+          }
+        } catch (err) {
+          console.error('[RESULTADO] Error calling verify-session:', err);
+          // Fallback to polling
+          startPolling();
+        } finally {
+          // Clean URL params
+          navigate(`/resultado/${attemptId}`, { replace: true });
+          setIsVerifying(false);
+        }
+      }
+    };
+
+    verifyAndUnlock();
+  }, [paymentParam, sessionIdParam, user, attempt?.has_premium_access, isVerifying, navigate, attemptId, startPolling, fetchAttempt, toast]);
 
   // Refetch when payment is confirmed via polling
   useEffect(() => {
