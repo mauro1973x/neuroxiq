@@ -248,11 +248,36 @@ const Resultado = () => {
 
   // On payment return, call verify-session to unlock content if Stripe confirms paid
   // This provides a synchronous fallback when webhook is delayed
+  // CRITICAL: Must verify even if has_premium_access is true (for bundle purchases that include certificate)
   useEffect(() => {
     const verifyAndUnlock = async () => {
-      if (paymentParam === 'success' && sessionIdParam && user && !attempt?.has_premium_access && !isVerifying) {
+      // Trigger verification if:
+      // 1. We have payment success params
+      // 2. User is logged in
+      // 3. We're not already verifying
+      // 4. We have attempt data loaded
+      if (paymentParam === 'success' && sessionIdParam && user && !isVerifying && attempt !== null) {
+        // For bundle: verify even if premium is already unlocked (certificate might not be)
+        // For premium_report: verify only if premium is not unlocked
+        // We don't know the purchase_type here, so we verify if EITHER content is missing
+        const needsPremiumUnlock = !attempt.has_premium_access;
+        const needsCertificateUnlock = attempt.certificate_payment_status !== 'paid';
+        
+        // Skip verification only if BOTH are already unlocked (bundle case)
+        // or if premium is unlocked (premium_report case)
+        // Since we don't know purchase_type, always verify if certificate is not unlocked
+        if (!needsPremiumUnlock && !needsCertificateUnlock) {
+          console.log('[RESULTADO] Both premium and certificate already unlocked, skipping verification');
+          navigate(`/resultado/${attemptId}`, { replace: true });
+          return;
+        }
+
         setIsVerifying(true);
-        console.log('[RESULTADO] Payment return detected, calling verify-session with sessionId:', sessionIdParam);
+        console.log('[RESULTADO] Payment return detected, calling verify-session', { 
+          sessionId: sessionIdParam,
+          needsPremiumUnlock,
+          needsCertificateUnlock
+        });
         
         try {
           // Call verify-session edge function - this will unlock if Stripe shows 'paid'
@@ -270,11 +295,26 @@ const Resultado = () => {
               description: 'Tente atualizar a página em alguns segundos.'
             });
           } else if (data?.verified) {
-            console.log('[RESULTADO] Payment verified and content unlocked!');
-            toast({
-              title: 'Pagamento Confirmado!',
-              description: 'Seu relatório premium foi liberado.',
-            });
+            console.log('[RESULTADO] Payment verified and content unlocked!', { purchaseType: data.purchaseType });
+            
+            // Show appropriate toast based on what was unlocked
+            const purchaseType = data.purchaseType || 'premium_report';
+            if (purchaseType === 'bundle') {
+              toast({
+                title: '🎉 Pagamento Confirmado!',
+                description: 'Seu relatório premium e certificado foram liberados.',
+              });
+            } else if (purchaseType === 'certificate') {
+              toast({
+                title: '🎉 Pagamento Confirmado!',
+                description: 'Seu certificado foi liberado.',
+              });
+            } else {
+              toast({
+                title: 'Pagamento Confirmado!',
+                description: 'Seu relatório premium foi liberado.',
+              });
+            }
             // Refetch to get updated data
             fetchAttempt();
           } else {
@@ -295,7 +335,7 @@ const Resultado = () => {
     };
 
     verifyAndUnlock();
-  }, [paymentParam, sessionIdParam, user, attempt?.has_premium_access, isVerifying, navigate, attemptId, startPolling, fetchAttempt, toast]);
+  }, [paymentParam, sessionIdParam, user, attempt, isVerifying, navigate, attemptId, startPolling, fetchAttempt, toast]);
 
   // Refetch when payment is confirmed via polling
   useEffect(() => {
