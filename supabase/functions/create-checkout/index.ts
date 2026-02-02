@@ -38,6 +38,34 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    // CRITICAL: Validate Stripe key is LIVE mode
+    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+    
+    if (!stripeSecretKey) {
+      logStep("ERROR: STRIPE_SECRET_KEY not configured");
+      throw new Error("STRIPE_SECRET_KEY not configured");
+    }
+
+    // Block test keys in production - MUST use sk_live_
+    if (stripeSecretKey.startsWith("sk_test_")) {
+      logStep("ERROR: Test key detected - blocking checkout", { keyPrefix: "sk_test_" });
+      throw new Error("STRIPE_SECRET_KEY is in test mode. Production requires LIVE key (sk_live_...)");
+    }
+
+    // Validate key format
+    if (stripeSecretKey.startsWith("pk_")) {
+      logStep("ERROR: Publishable key detected", { keyPrefix: "pk_" });
+      throw new Error("Invalid key type: STRIPE_SECRET_KEY contains publishable key. Need secret key (sk_live_...)");
+    }
+
+    if (stripeSecretKey.startsWith("rk_")) {
+      logStep("ERROR: Restricted key detected", { keyPrefix: "rk_" });
+      throw new Error("Restricted keys not supported. Use full secret key (sk_live_...)");
+    }
+
+    const stripeMode = stripeSecretKey.startsWith("sk_live_") ? "LIVE" : "UNKNOWN";
+    logStep("Stripe mode validated", { mode: stripeMode });
+
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
 
@@ -91,10 +119,11 @@ serve(async (req) => {
     const product = prices[purchaseType];
     if (!product) throw new Error("Invalid purchase type");
 
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    // Initialize Stripe with validated LIVE key
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: "2025-08-27.basil",
     });
+    logStep("Stripe initialized in LIVE mode");
 
     // Check if Stripe customer exists
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
