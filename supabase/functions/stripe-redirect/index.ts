@@ -23,6 +23,34 @@ serve(async (req) => {
   try {
     logStep("Request received");
 
+    // CRITICAL: Validate Stripe key is LIVE mode FIRST
+    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+    
+    if (!stripeSecretKey) {
+      logStep("ERROR: STRIPE_SECRET_KEY not configured");
+      return new Response("Payment system not configured", { status: 500 });
+    }
+
+    // Block test keys in production - MUST use sk_live_
+    if (stripeSecretKey.startsWith("sk_test_")) {
+      logStep("ERROR: Test key detected - blocking checkout", { keyPrefix: "sk_test_" });
+      return new Response("Payment system in test mode. Contact support.", { status: 500 });
+    }
+
+    // Validate key format
+    if (stripeSecretKey.startsWith("pk_")) {
+      logStep("ERROR: Publishable key detected", { keyPrefix: "pk_" });
+      return new Response("Invalid payment configuration", { status: 500 });
+    }
+
+    if (stripeSecretKey.startsWith("rk_")) {
+      logStep("ERROR: Restricted key detected", { keyPrefix: "rk_" });
+      return new Response("Invalid payment configuration", { status: 500 });
+    }
+
+    const stripeMode = stripeSecretKey.startsWith("sk_live_") ? "LIVE" : "UNKNOWN";
+    logStep("Stripe mode validated", { mode: stripeMode });
+
     // Parse query parameters
     const url = new URL(req.url);
     const attemptId = url.searchParams.get("attemptId");
@@ -125,10 +153,11 @@ serve(async (req) => {
 
     const productDetails = productMap[product] || productMap.report;
 
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    // Initialize Stripe with validated LIVE key
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: "2025-08-27.basil",
     });
+    logStep("Stripe initialized in LIVE mode");
 
     // Check for existing Stripe customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
