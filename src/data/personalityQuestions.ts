@@ -546,7 +546,7 @@ export const personalityResultBands: PersonalityResultBand[] = [
     minScore: 0,
     maxScore: 30,
     name: 'Perfil em Desenvolvimento',
-    freeDescription: 'Seu perfil indica que você está em uma fase de autodescoberta. Há muitas oportunidades para desenvolver diferentes aspectos da sua personalidade.',
+    freeDescription: 'Há camadas da sua personalidade que você ainda não explorou. Seu perfil revela pistas fascinantes sobre quem você realmente é — a análise completa desvenda o que está por trás.',
     premiumDescription: 'Análise detalhada dos cinco grandes traços de personalidade com recomendações específicas para seu desenvolvimento pessoal e profissional.',
     traits: {
       openness: 'Baixa abertura a novas experiências',
@@ -560,7 +560,7 @@ export const personalityResultBands: PersonalityResultBand[] = [
     minScore: 31,
     maxScore: 60,
     name: 'Perfil Equilibrado Inicial',
-    freeDescription: 'Você demonstra um equilíbrio inicial entre os diferentes traços de personalidade. Há espaço para fortalecer áreas específicas.',
+    freeDescription: 'Seu equilíbrio aparente esconde contrastes reveladores. Detectamos nuances no seu perfil que podem explicar padrões que você nota no dia a dia.',
     premiumDescription: 'Relatório completo com mapeamento dos seus pontos fortes e áreas de desenvolvimento nos cinco grandes traços.',
     traits: {
       openness: 'Abertura moderada',
@@ -574,7 +574,7 @@ export const personalityResultBands: PersonalityResultBand[] = [
     minScore: 61,
     maxScore: 90,
     name: 'Perfil Equilibrado',
-    freeDescription: 'Você apresenta um perfil equilibrado com bom desenvolvimento em múltiplos traços de personalidade. Suas características pessoais estão bem integradas.',
+    freeDescription: 'Suas respostas revelam uma combinação rara de traços. Há conexões surpreendentes entre suas dimensões de personalidade — a análise completa mostra o quadro inteiro.',
     premiumDescription: 'Análise aprofundada do seu perfil equilibrado com estratégias para potencializar seus pontos fortes.',
     traits: {
       openness: 'Boa abertura a experiências',
@@ -588,7 +588,7 @@ export const personalityResultBands: PersonalityResultBand[] = [
     minScore: 91,
     maxScore: 120,
     name: 'Perfil Altamente Desenvolvido',
-    freeDescription: 'Você demonstra um perfil de personalidade altamente desenvolvido com características marcantes em múltiplas dimensões. Suas respostas indicam maturidade e autoconhecimento.',
+    freeDescription: 'Perfil notável. Suas características de personalidade formam um mosaico raro e poderoso — descubra o que ele revela sobre seu potencial oculto.',
     premiumDescription: 'Relatório premium com análise detalhada do seu perfil excepcional e orientações para carreiras e relacionamentos.',
     traits: {
       openness: 'Alta abertura e criatividade',

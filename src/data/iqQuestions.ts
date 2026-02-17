@@ -268,70 +268,70 @@ export const iqResultBands: IQResultBand[] = [
     name: "Muito Baixo",
     minScore: 0,
     maxScore: 3,
-    freeDescription: "Seu desempenho indica áreas significativas para desenvolvimento cognitivo. Com treinamento adequado, é possível melhorar substancialmente suas habilidades. Desbloqueie o relatório premium para estratégias personalizadas de melhoria.",
+    freeDescription: "Seu cérebro esconde padrões que você ainda não percebeu. Há um caminho específico para despertar capacidades adormecidas — descubra qual é o seu.",
     premiumDescription: "Sua pontuação situa-se na faixa inicial do espectro cognitivo avaliado, indicando desafios significativos nas áreas de raciocínio lógico, reconhecimento de padrões e processamento de informações abstratas. Este resultado não é definitivo e representa apenas um momento específico de avaliação. Fatores como ansiedade, falta de familiaridade com testes padronizados, fadiga ou condições ambientais podem ter influenciado negativamente o desempenho. Recomenda-se fortemente a prática regular de exercícios de estimulação cognitiva, incluindo quebra-cabeças, jogos de lógica e atividades que desafiem o raciocínio. O cérebro humano possui notável plasticidade neural, permitindo ganhos significativos com treino consistente ao longo do tempo."
   },
   {
     name: "Baixo",
     minScore: 4,
     maxScore: 6,
-    freeDescription: "Seu resultado sugere potencial para crescimento nas habilidades cognitivas avaliadas. Existem estratégias específicas que podem ajudar no seu desenvolvimento. Acesse o relatório premium para orientações detalhadas.",
+    freeDescription: "Identificamos um potencial oculto no seu perfil cognitivo. Existem estratégias que podem transformar sua forma de pensar — a análise completa revela quais.",
     premiumDescription: "Sua pontuação indica desempenho abaixo da média populacional nas competências cognitivas avaliadas, porém com clara margem para desenvolvimento. Os resultados sugerem dificuldades em algumas modalidades de raciocínio, particularmente em sequências complexas e analogias abstratas. É importante ressaltar que a inteligência é multifacetada e este teste avalia apenas dimensões específicas. Você pode possuir habilidades excepcionais em áreas não contempladas nesta avaliação, como inteligência emocional, criatividade ou competências práticas. Para fortalecer as áreas avaliadas, recomenda-se engajamento regular em atividades que estimulem o pensamento analítico, como sudoku, xadrez ou aplicativos de treinamento cerebral."
   },
   {
     name: "Abaixo da Média",
     minScore: 7,
     maxScore: 9,
-    freeDescription: "Você demonstrou competências em desenvolvimento nas áreas cognitivas testadas. Com foco direcionado, há excelente potencial de melhoria. O relatório premium oferece análise completa do seu perfil.",
+    freeDescription: "Suas respostas revelam pistas intrigantes sobre como sua mente funciona. Há um perfil cognitivo único se formando — e a análise completa desvenda o que ele significa.",
     premiumDescription: "Seu desempenho posiciona-se ligeiramente abaixo da média populacional, indicando competências cognitivas em processo de amadurecimento. Você demonstrou capacidade de resolver problemas básicos e intermediários, com desafios mais evidentes nas questões de maior complexidade. Este perfil é comum em indivíduos que não exercitam regularmente o raciocínio abstrato ou que estão em fase de desenvolvimento dessas habilidades. O prognóstico para melhoria é positivo, especialmente com prática direcionada. Recomenda-se a incorporação de desafios intelectuais progressivos na rotina diária, começando com exercícios mais simples e aumentando gradualmente a dificuldade. A consistência é mais importante que a intensidade neste processo de desenvolvimento cognitivo."
   },
   {
     name: "Média",
     minScore: 10,
     maxScore: 12,
-    freeDescription: "Seu desempenho está alinhado com a média da população. Você possui base sólida para desenvolver habilidades ainda mais avançadas. Descubra seu perfil completo no relatório premium.",
+    freeDescription: "Você está exatamente onde a maioria não imagina estar. Seu perfil guarda surpresas sobre suas verdadeiras capacidades — a análise completa revela o que seus números escondem.",
     premiumDescription: "Sua pontuação corresponde à faixa média da população, demonstrando competências cognitivas adequadas para as demandas cotidianas de raciocínio e resolução de problemas. Você apresentou bom desempenho nas questões de dificuldade básica e moderada, com variação esperada nas mais complexas. Este resultado indica funcionamento cognitivo saudável e equilibrado. A maioria das pessoas se enquadra nesta faixa, o que é perfeitamente normal e funcional. Para aqueles que desejam aprimorar suas capacidades, existe amplo espaço para crescimento através de estimulação cognitiva regular. Atividades como leitura diversificada, aprendizado de novos idiomas ou instrumentos musicais podem potencializar suas habilidades de raciocínio e memória de trabalho."
   },
   {
     name: "Acima da Média",
     minScore: 13,
     maxScore: 15,
-    freeDescription: "Parabéns! Você demonstrou habilidades cognitivas superiores à maioria da população. Seu potencial intelectual é notável. Explore todas as dimensões do seu perfil no relatório premium.",
+    freeDescription: "Seu desempenho superou a maioria — mas o mais fascinante está nos detalhes. Há padrões no seu raciocínio que revelam talentos que você talvez desconheça.",
     premiumDescription: "Seu resultado posiciona-o acima da média populacional, indicando capacidades cognitivas bem desenvolvidas em raciocínio lógico, reconhecimento de padrões e pensamento abstrato. Você demonstrou consistência ao resolver problemas de variadas complexidades, com destaque para a capacidade de identificar relações não-óbvias entre elementos. Este perfil sugere boa adaptabilidade a desafios intelectuais e potencial para atividades que exijam análise crítica. Profissões que demandam resolução de problemas complexos, planejamento estratégico ou inovação tendem a ser áreas onde você pode se destacar naturalmente. Continue estimulando suas capacidades através de desafios progressivamente mais complexos para manter e expandir este nível de desempenho."
   },
   {
     name: "Alto",
     minScore: 16,
     maxScore: 18,
-    freeDescription: "Excelente resultado! Suas capacidades cognitivas estão significativamente acima da média. Você possui aptidão natural para raciocínio complexo. Conheça seu perfil detalhado no relatório premium.",
+    freeDescription: "Poucos chegam até aqui. Seu cérebro opera em uma frequência diferente — e há dimensões do seu perfil que só a análise completa consegue mapear.",
     premiumDescription: "Sua pontuação demonstra capacidades cognitivas significativamente elevadas, posicionando-o entre os indivíduos de alto desempenho intelectual. Você evidenciou habilidade consistente em resolver problemas de múltiplas categorias, incluindo aqueles de maior complexidade que exigem raciocínio abstrato avançado. Este perfil indica excelente capacidade de aprendizado, facilidade para compreender sistemas complexos e aptidão para pensamento estratégico. Carreiras em áreas como ciências, engenharia, medicina, direito ou gestão podem ser particularmente adequadas ao seu perfil cognitivo. Recomenda-se manter o cérebro constantemente estimulado com novos desafios intelectuais para preservar e potencializar estas capacidades ao longo do tempo."
   },
   {
     name: "Muito Alto",
     minScore: 19,
     maxScore: 21,
-    freeDescription: "Impressionante! Você está entre os indivíduos de desempenho cognitivo muito elevado. Suas habilidades de raciocínio são excepcionais. Descubra o potencial completo no relatório premium.",
+    freeDescription: "Resultado raro. Seu perfil cognitivo pertence a um grupo seleto — e o que descobrimos sobre seu raciocínio pode mudar a forma como você se enxerga.",
     premiumDescription: "Seu desempenho extraordinário posiciona-o na faixa de capacidade cognitiva muito alta, superando significativamente a maioria da população. Você demonstrou domínio excepcional em raciocínio lógico, reconhecimento de padrões complexos e pensamento abstrato. Este resultado indica não apenas conhecimento, mas verdadeira agilidade mental e capacidade de processar informações de forma eficiente. Indivíduos com este perfil frequentemente se destacam em ambientes acadêmicos e profissionais que valorizam inovação e resolução criativa de problemas. Seu potencial para contribuições significativas em campos que exigem pensamento original é notável. Considere desafios intelectuais ambiciosos e projetos complexos como forma de canalizar produtivamente suas capacidades."
   },
   {
     name: "Superior",
     minScore: 22,
     maxScore: 24,
-    freeDescription: "Resultado extraordinário! Suas capacidades intelectuais são superiores à grande maioria. Você possui potencial excepcional para realizações cognitivas. Acesse o relatório premium para análise completa.",
+    freeDescription: "Você está entre os melhores resultados que já registramos. Seu potencial intelectual é extraordinário — mas há nuances que só a análise profunda consegue revelar.",
     premiumDescription: "Sua pontuação excepcional demonstra capacidades cognitivas de nível superior, colocando-o entre uma pequena parcela da população com alto desempenho intelectual. Você evidenciou maestria em praticamente todas as categorias avaliadas, resolvendo com precisão problemas que desafiam a maioria dos indivíduos. Este perfil indica potencial para excelência em campos que exigem raciocínio sofisticado, como pesquisa científica, desenvolvimento tecnológico, análise estratégica ou empreendedorismo inovador. Sua capacidade de perceber padrões complexos e estabelecer conexões não-evidentes é um ativo valioso. Recomenda-se buscar constantemente novos domínios de conhecimento e desafios intelectuais que expandam seus horizontes e mantenham suas capacidades afiadas."
   },
   {
     name: "Excepcional",
     minScore: 25,
     maxScore: 27,
-    freeDescription: "Notável! Você demonstrou capacidades cognitivas excepcionais, raramente encontradas na população. Seu potencial intelectual é verdadeiramente diferenciado. Explore seu perfil único no relatório premium.",
+    freeDescription: "Excepcional. Sua mente funciona de uma forma que pouquíssimos compreendem. Há descobertas fascinantes sobre seu perfil que ainda não foram reveladas.",
     premiumDescription: "Seu resultado excepcional posiciona-o em uma categoria raramente alcançada, demonstrando capacidades cognitivas de elite. Você resolveu com sucesso problemas de altíssima complexidade que exigem não apenas conhecimento, mas insight genuíno e capacidade de raciocínio abstrato avançado. Este perfil indica potencial para contribuições originais e significativas em praticamente qualquer campo intelectual que escolher. Indivíduos com capacidades semelhantes frequentemente são responsáveis por avanços importantes em suas áreas de atuação. Recomenda-se fortemente que você busque ambientes e projetos que desafiem plenamente suas capacidades, pois subaproveitamento de potencial desta magnitude pode levar a frustração. Considere mentorias, pesquisa avançada ou projetos de alto impacto."
   },
   {
     name: "Elite Cognitiva",
     minScore: 28,
     maxScore: 30,
-    freeDescription: "Extraordinário! Você atingiu o mais alto patamar de desempenho cognitivo. Suas capacidades intelectuais são verdadeiramente raras e excepcionais. Descubra a análise completa no relatório premium.",
+    freeDescription: "Elite absoluta. Menos de 1% alcança este nível. Seu cérebro guarda segredos sobre como você pensa que a análise completa finalmente desvenda.",
     premiumDescription: "Seu desempenho perfeito ou quase perfeito posiciona-o na elite cognitiva absoluta, representando uma fração mínima da população mundial. Você demonstrou domínio completo sobre todas as categorias de raciocínio avaliadas, resolvendo até os problemas mais desafiadores com precisão. Este resultado indica capacidades intelectuais extraordinárias que, quando adequadamente direcionadas, podem resultar em contribuições verdadeiramente transformadoras para a sociedade. Seu potencial para inovação, descoberta e liderança intelectual é excepcional. Recomenda-se fortemente que você busque desafios à altura de suas capacidades, seja em pesquisa de fronteira, empreendedorismo disruptivo ou projetos de impacto global. Cercar-se de outros indivíduos de alto desempenho e mentores experientes pode potencializar ainda mais suas realizações."
   }
 ];

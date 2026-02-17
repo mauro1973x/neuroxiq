@@ -596,7 +596,7 @@ export const careerResultBands: CareerResultBand[] = [
     minScore: 0,
     maxScore: 31,
     name: 'Perfil em Exploração',
-    freeDescription: 'Você está em uma fase de descoberta vocacional. Este é um momento importante para explorar diferentes áreas e identificar seus verdadeiros interesses.',
+    freeDescription: 'Seu perfil vocacional esconde possibilidades que você ainda não considerou. Há caminhos profissionais surpreendentes esperando para serem descobertos.',
     premiumDescription: 'Seu perfil indica que você ainda não possui preferências vocacionais claramente definidas. Isso é comum em pessoas que estão iniciando sua jornada profissional ou passando por uma transição de carreira. O relatório premium oferece orientações específicas para ajudá-lo a descobrir suas aptidões naturais.',
     profiles: {
       realistic: 'Em desenvolvimento',
@@ -611,7 +611,7 @@ export const careerResultBands: CareerResultBand[] = [
     minScore: 32,
     maxScore: 62,
     name: 'Perfil Moderado',
-    freeDescription: 'Você possui algumas preferências vocacionais definidas, mas há espaço para maior clareza. Considere experimentar diferentes atividades para fortalecer sua orientação.',
+    freeDescription: 'Detectamos tendências vocacionais intrigantes no seu perfil. Algumas combinações inesperadas apontam para carreiras que talvez nunca tenha considerado.',
     premiumDescription: 'Seu perfil mostra tendências moderadas em algumas áreas vocacionais. Você está começando a desenvolver preferências mais claras, mas ainda pode se beneficiar de exploração adicional. O relatório premium identifica suas áreas mais promissoras.',
     profiles: {
       realistic: 'Tendência moderada',
@@ -626,7 +626,7 @@ export const careerResultBands: CareerResultBand[] = [
     minScore: 63,
     maxScore: 93,
     name: 'Perfil Definido',
-    freeDescription: 'Você demonstra preferências vocacionais claras e bem estabelecidas. Suas inclinações naturais apontam para áreas específicas que merecem atenção.',
+    freeDescription: 'Suas respostas revelam um perfil profissional marcante. Há padrões no seu comportamento que conectam você a áreas específicas — a análise completa mostra quais.',
     premiumDescription: 'Seu perfil indica preferências vocacionais bem definidas. Você possui uma boa compreensão das suas aptidões e interesses profissionais. O relatório premium detalha as melhores carreiras e trajetórias para seu perfil único.',
     profiles: {
       realistic: 'Tendência definida',
@@ -641,7 +641,7 @@ export const careerResultBands: CareerResultBand[] = [
     minScore: 94,
     maxScore: 126,
     name: 'Perfil Consolidado',
-    freeDescription: 'Você possui preferências vocacionais muito fortes e consolidadas. Sua clareza de interesses é um grande diferencial para decisões de carreira.',
+    freeDescription: 'Perfil raro e consolidado. Suas inclinações vocacionais são poderosas e apontam para um propósito claro — a análise completa revela o mapa da sua carreira ideal.',
     premiumDescription: 'Seu perfil demonstra preferências vocacionais muito fortes e consistentes. Você tem uma visão clara do que busca profissionalmente e apresenta aptidões marcantes em áreas específicas. O relatório premium oferece insights avançados para maximizar seu potencial.',
     profiles: {
       realistic: 'Tendência consolidada',
