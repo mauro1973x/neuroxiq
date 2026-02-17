@@ -596,7 +596,7 @@ export const careerResultBands: CareerResultBand[] = [
     minScore: 0,
     maxScore: 31,
     name: 'Perfil em Exploração',
-    freeDescription: 'Seu perfil vocacional esconde possibilidades que você ainda não considerou. Há caminhos profissionais surpreendentes esperando para serem descobertos.',
+    freeDescription: 'Seu perfil revela inclinações vocacionais que ainda não tomaram forma definida — um padrão pouco percebido que esconde possibilidades profissionais surpreendentes. Suas respostas indicam traços que explicam por que certas atividades te atraem e outras te drenam. A análise completa revela o que esse perfil significa na sua vida, decisões e relações.',
     premiumDescription: 'Seu perfil indica que você ainda não possui preferências vocacionais claramente definidas. Isso é comum em pessoas que estão iniciando sua jornada profissional ou passando por uma transição de carreira. O relatório premium oferece orientações específicas para ajudá-lo a descobrir suas aptidões naturais.',
     profiles: {
       realistic: 'Em desenvolvimento',
@@ -611,7 +611,7 @@ export const careerResultBands: CareerResultBand[] = [
     minScore: 32,
     maxScore: 62,
     name: 'Perfil Moderado',
-    freeDescription: 'Detectamos tendências vocacionais intrigantes no seu perfil. Algumas combinações inesperadas apontam para carreiras que talvez nunca tenha considerado.',
+    freeDescription: 'Suas respostas indicam uma combinação incomum de interesses profissionais que desafia categorias tradicionais. Detectamos tendências vocacionais que operam de forma inconsciente nas suas escolhas diárias — características que nem sempre são conscientes, mas que direcionam sua carreira. A análise completa revela o que esse perfil significa na sua vida, decisões e relações.',
     premiumDescription: 'Seu perfil mostra tendências moderadas em algumas áreas vocacionais. Você está começando a desenvolver preferências mais claras, mas ainda pode se beneficiar de exploração adicional. O relatório premium identifica suas áreas mais promissoras.',
     profiles: {
       realistic: 'Tendência moderada',
@@ -626,7 +626,7 @@ export const careerResultBands: CareerResultBand[] = [
     minScore: 63,
     maxScore: 93,
     name: 'Perfil Definido',
-    freeDescription: 'Suas respostas revelam um perfil profissional marcante. Há padrões no seu comportamento que conectam você a áreas específicas — a análise completa mostra quais.',
+    freeDescription: 'Seu padrão mental mostra um perfil profissional com contornos bem definidos — traços que explicam decisões de carreira que você já tomou e outras que ainda vai tomar. Há uma combinação incomum entre suas aptidões que aponta para áreas específicas de alto desempenho. A análise completa revela o que esse perfil significa na sua vida, decisões e relações.',
     premiumDescription: 'Seu perfil indica preferências vocacionais bem definidas. Você possui uma boa compreensão das suas aptidões e interesses profissionais. O relatório premium detalha as melhores carreiras e trajetórias para seu perfil único.',
     profiles: {
       realistic: 'Tendência definida',
@@ -641,7 +641,7 @@ export const careerResultBands: CareerResultBand[] = [
     minScore: 94,
     maxScore: 126,
     name: 'Perfil Consolidado',
-    freeDescription: 'Perfil raro e consolidado. Suas inclinações vocacionais são poderosas e apontam para um propósito claro — a análise completa revela o mapa da sua carreira ideal.',
+    freeDescription: 'Seu perfil revela uma consolidação vocacional rara — menos de 15% dos avaliados demonstram este nível de clareza profissional. Suas inclinações formam um padrão pouco percebido que conecta propósito, habilidade e satisfação de forma extraordinária. A análise completa revela o que esse perfil significa na sua vida, decisões e relações.',
     premiumDescription: 'Seu perfil demonstra preferências vocacionais muito fortes e consistentes. Você tem uma visão clara do que busca profissionalmente e apresenta aptidões marcantes em áreas específicas. O relatório premium oferece insights avançados para maximizar seu potencial.',
     profiles: {
       realistic: 'Tendência consolidada',

@@ -546,7 +546,7 @@ export const personalityResultBands: PersonalityResultBand[] = [
     minScore: 0,
     maxScore: 30,
     name: 'Perfil em Desenvolvimento',
-    freeDescription: 'Há camadas da sua personalidade que você ainda não explorou. Seu perfil revela pistas fascinantes sobre quem você realmente é — a análise completa desvenda o que está por trás.',
+    freeDescription: 'Seu perfil revela dimensões da sua personalidade que operam de forma silenciosa — traços que explicam decisões e comportamentos que você repete sem perceber. Há características que nem sempre são conscientes, mas que influenciam profundamente seus relacionamentos e escolhas. A análise completa revela o que esse perfil significa na sua vida, decisões e relações.',
     premiumDescription: 'Análise detalhada dos cinco grandes traços de personalidade com recomendações específicas para seu desenvolvimento pessoal e profissional.',
     traits: {
       openness: 'Baixa abertura a novas experiências',
@@ -560,7 +560,7 @@ export const personalityResultBands: PersonalityResultBand[] = [
     minScore: 31,
     maxScore: 60,
     name: 'Perfil Equilibrado Inicial',
-    freeDescription: 'Seu equilíbrio aparente esconde contrastes reveladores. Detectamos nuances no seu perfil que podem explicar padrões que você nota no dia a dia.',
+    freeDescription: 'Suas respostas indicam contrastes internos fascinantes — uma combinação incomum de traços que cria tensões produtivas na sua personalidade. Detectamos um padrão pouco percebido entre suas dimensões psicológicas que explica dinâmicas importantes do seu dia a dia. A análise completa revela o que esse perfil significa na sua vida, decisões e relações.',
     premiumDescription: 'Relatório completo com mapeamento dos seus pontos fortes e áreas de desenvolvimento nos cinco grandes traços.',
     traits: {
       openness: 'Abertura moderada',
@@ -574,7 +574,7 @@ export const personalityResultBands: PersonalityResultBand[] = [
     minScore: 61,
     maxScore: 90,
     name: 'Perfil Equilibrado',
-    freeDescription: 'Suas respostas revelam uma combinação rara de traços. Há conexões surpreendentes entre suas dimensões de personalidade — a análise completa mostra o quadro inteiro.',
+    freeDescription: 'Seu padrão mental mostra uma arquitetura de personalidade rara — conexões entre seus cinco traços fundamentais que criam um perfil com características que nem sempre são conscientes. Há dimensões do seu funcionamento psicológico que explicam por que você se destaca em contextos específicos. A análise completa revela o que esse perfil significa na sua vida, decisões e relações.',
     premiumDescription: 'Análise aprofundada do seu perfil equilibrado com estratégias para potencializar seus pontos fortes.',
     traits: {
       openness: 'Boa abertura a experiências',
@@ -588,7 +588,7 @@ export const personalityResultBands: PersonalityResultBand[] = [
     minScore: 91,
     maxScore: 120,
     name: 'Perfil Altamente Desenvolvido',
-    freeDescription: 'Perfil notável. Suas características de personalidade formam um mosaico raro e poderoso — descubra o que ele revela sobre seu potencial oculto.',
+    freeDescription: 'Seu perfil revela um nível de desenvolvimento psicológico que poucos alcançam — uma combinação incomum de maturidade emocional, abertura e conscienciosidade. Seus traços formam um mosaico que a psicometria classifica como excepcional, com padrões pouco percebidos que moldam seu impacto nas pessoas ao redor. A análise completa revela o que esse perfil significa na sua vida, decisões e relações.',
     premiumDescription: 'Relatório premium com análise detalhada do seu perfil excepcional e orientações para carreiras e relacionamentos.',
     traits: {
       openness: 'Alta abertura e criatividade',
