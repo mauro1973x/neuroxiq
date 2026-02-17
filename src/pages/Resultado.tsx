@@ -1001,50 +1001,48 @@ const Resultado = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="text-center p-6 rounded-xl bg-muted/30">
-                    <div className="text-sm text-muted-foreground mb-2">Posição no Espectro</div>
-                    <div className="text-5xl font-bold bg-gradient-to-r from-red-500 to-orange-600 bg-clip-text text-transparent">
-                      {score}
-                      <span className="text-2xl text-muted-foreground">/100</span>
+                    <div className="flex justify-center mb-3">
+                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                      </div>
                     </div>
-                    <div className="mt-4 relative">
-                      <div className="h-4 bg-gradient-to-r from-blue-600 via-gray-400 to-red-600 rounded-full" />
-                      <div 
-                        className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-gray-800 rounded-full"
-                        style={{ left: `calc(${score}% - 8px)` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-xs text-muted-foreground mt-2">
-                      <span>Progressista</span>
-                      <span>Centro</span>
-                      <span>Conservador</span>
-                    </div>
-                  </div>
-
-                  <div className="text-center">
-                    <Badge className="text-lg px-4 py-2 bg-gradient-to-r from-red-500 to-orange-600 text-white border-0">
-                      {attempt.result_category}
-                    </Badge>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="text-center p-3 rounded-lg bg-muted/20 border">
-                      <div className="text-xs text-muted-foreground mb-1">Econômico</div>
-                      <div className="text-sm font-medium">{politicalResultBand.economic_axis}</div>
-                    </div>
-                    <div className="text-center p-3 rounded-lg bg-muted/20 border">
-                      <div className="text-xs text-muted-foreground mb-1">Social</div>
-                      <div className="text-sm font-medium">{politicalResultBand.social_axis}</div>
-                    </div>
-                    <div className="text-center p-3 rounded-lg bg-muted/20 border">
-                      <div className="text-xs text-muted-foreground mb-1">Autoridade</div>
-                      <div className="text-sm font-medium">{politicalResultBand.authority_axis}</div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-lg bg-muted/20 border">
-                    <p className="text-center text-muted-foreground leading-relaxed">
-                      {attempt.result_description || politicalResultBand.free_description}
+                    <div className="text-lg font-semibold text-foreground mb-1">Análise Concluída</div>
+                    <p className="text-sm text-muted-foreground">
+                      Suas 40 respostas foram processadas com sucesso.
                     </p>
+                  </div>
+
+                  <div className="p-5 rounded-xl bg-gradient-to-br from-red-500/5 to-orange-500/5 border border-red-500/20">
+                    <div className="flex items-start gap-3">
+                      <Brain className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-foreground">
+                          Seu perfil político-ideológico foi identificado com alta precisão.
+                        </p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          A análise cruzou seus posicionamentos em quatro eixos — econômico, social, autoridade e valores — revelando padrões que definem como você interpreta o mundo político.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider text-center">O relatório completo inclui:</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {[
+                        'Sua posição ideológica detalhada',
+                        'Análise dos 4 eixos políticos',
+                        'Tendências e traços comportamentais',
+                        'Figuras históricas com perfil similar',
+                        'Carreiras compatíveis com seu perfil',
+                        'Interpretação psicológica completa'
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className="h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="pt-4 border-t">
