@@ -1,4 +1,4 @@
-export type TestType = 'iq' | 'personality' | 'political' | 'career' | 'emotional' | 'cognitive';
+export type TestType = 'iq' | 'personality' | 'political' | 'career' | 'emotional' | 'cognitive' | 'compatibility';
 
 // Quiz interface - includes pricing (for admin use)
 export interface Quiz {
@@ -101,6 +101,7 @@ export const TEST_TYPE_LABELS: Record<TestType, string> = {
   career: 'Carreira',
   emotional: 'Inteligência Emocional',
   cognitive: 'Habilidades Cognitivas',
+  compatibility: 'Compatibilidade Amorosa',
 };
 
 export const TEST_TYPE_COLORS: Record<TestType, string> = {
@@ -110,6 +111,7 @@ export const TEST_TYPE_COLORS: Record<TestType, string> = {
   career: 'from-green-500 to-teal-600',
   emotional: 'from-rose-500 to-red-600',
   cognitive: 'from-cyan-500 to-blue-600',
+  compatibility: 'from-white to-white',
 };
 
 export const TEST_TYPE_ICONS: Record<TestType, string> = {
@@ -119,4 +121,5 @@ export const TEST_TYPE_ICONS: Record<TestType, string> = {
   career: '💼',
   emotional: '✨',
   cognitive: '🔮',
+  compatibility: '❤️',
 };

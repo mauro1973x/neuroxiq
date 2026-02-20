@@ -13,7 +13,7 @@ const QuizCard = ({ quiz }: QuizCardProps) => {
     <div className="group glass-card p-5 md:p-6 hover:shadow-xl transition-all duration-300 md:hover:-translate-y-1 flex flex-col active:scale-[0.98]">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
-        <div className={`flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-xl bg-gradient-to-br ${TEST_TYPE_COLORS[quiz.test_type]} text-xl md:text-2xl`}>
+        <div className={`flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-xl ${quiz.test_type === 'compatibility' ? 'bg-white border-2 border-red-500 shadow-sm' : `bg-gradient-to-br ${TEST_TYPE_COLORS[quiz.test_type]}`} text-xl md:text-2xl`}>
           {TEST_TYPE_ICONS[quiz.test_type]}
         </div>
         {quiz.is_premium && (
@@ -56,6 +56,7 @@ const QuizCard = ({ quiz }: QuizCardProps) => {
         quiz.test_type === 'emotional' ? '/teste-emocional' :
         quiz.test_type === 'personality' ? '/teste-personalidade' :
         quiz.test_type === 'career' ? '/teste-carreira' :
+        quiz.test_type === 'compatibility' ? '/teste-compatibilidade' :
         `/teste/${quiz.id}`
       }>
         <Button 
