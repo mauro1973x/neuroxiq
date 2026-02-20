@@ -17,6 +17,7 @@ import TesteCarreira from "./pages/TesteCarreira";
 import TestePolitico from "./pages/TestePolitico";
 import TesteCompatibilidade from "./pages/TesteCompatibilidade";
 import Resultado from "./pages/Resultado";
+import ResultadoCompatibilidade from "./pages/ResultadoCompatibilidade";
 import Certificado from "./pages/Certificado";
 import ValidarCertificado from "./pages/ValidarCertificado";
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/teste-politico" element={<TestePolitico />} />
             <Route path="/teste-compatibilidade" element={<TesteCompatibilidade />} />
             <Route path="/resultado/:attemptId" element={<Resultado />} />
+            <Route path="/resultado-compatibilidade/:attemptId" element={<ResultadoCompatibilidade />} />
             <Route path="/certificado/:attemptId" element={<Certificado />} />
             <Route path="/validar/:validationCode" element={<ValidarCertificado />} />
             <Route path="/payment/success" element={<PaymentSuccess />} />

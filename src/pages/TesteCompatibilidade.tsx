@@ -118,7 +118,7 @@ const TesteCompatibilidade = () => {
 
       if (error) throw error;
 
-      navigate(`/resultado/${attemptId}`);
+      navigate(`/resultado-compatibilidade/${attemptId}`);
     } catch (error) {
       console.error('Error saving result:', error);
       toast({
@@ -126,7 +126,7 @@ const TesteCompatibilidade = () => {
         description: 'Resultado calculado, mas houve um erro ao salvar.',
         variant: 'destructive',
       });
-      navigate(`/resultado/${attemptId}`);
+      navigate(`/resultado-compatibilidade/${attemptId}`);
     }
   }, [attemptId, user, answers, isSubmitting, navigate, toast]);
 
