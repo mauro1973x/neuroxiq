@@ -105,7 +105,7 @@ const TesteCarreira = () => {
         scoreValue: hollandCode,
         testType: 'career',
       }));
-      navigate(`/resultado/pending-${tempId}`);
+      navigate(`/resultado-pendente/${tempId}`);
       return;
     }
 

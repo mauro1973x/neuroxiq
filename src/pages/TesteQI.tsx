@@ -112,7 +112,7 @@ const TesteQI = () => {
         scoreValue: String(estimatedIQ),
         testType: 'iq',
       }));
-      navigate(`/resultado/pending-${tempId}`);
+      navigate(`/resultado-pendente/${tempId}`);
       return;
     }
 

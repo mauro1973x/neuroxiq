@@ -117,7 +117,7 @@ const TestePolitico = () => {
         scoreValue: resultBand?.name || 'Indefinido',
         testType: 'political',
       }));
-      navigate(`/resultado/pending-${tempId}`);
+      navigate(`/resultado-pendente/${tempId}`);
       return;
     }
 

@@ -48,8 +48,8 @@ const ResultadoPendente = () => {
   const [pendingResult, setPendingResult] = useState<PendingResult | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Extract the tempId from the route param (format: pending-temp-qi-TIMESTAMP)
-  const tempKey = attemptId?.replace('pending-', '') || '';
+  // The route param IS the tempKey directly (e.g. temp-qi-1234567890)
+  const tempKey = attemptId || '';
 
   useEffect(() => {
     const stored = sessionStorage.getItem(`pending-result-${tempKey}`);
@@ -202,13 +202,13 @@ const ResultadoPendente = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Link to={`/cadastro?redirect=/resultado/pending-${tempKey}`}>
+                <Link to={`/cadastro?redirect=/resultado-pendente/${tempKey}`}>
                   <Button variant="hero" className="w-full min-h-[48px]">
                     <UserPlus className="h-4 w-4 mr-2" />
                     Criar conta grátis
                   </Button>
                 </Link>
-                <Link to={`/login?redirect=/resultado/pending-${tempKey}`}>
+                <Link to={`/login?redirect=/resultado-pendente/${tempKey}`}>
                   <Button variant="outline" className="w-full min-h-[48px]">
                     <LogIn className="h-4 w-4 mr-2" />
                     Já tenho conta
