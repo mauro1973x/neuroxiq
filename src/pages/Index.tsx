@@ -174,11 +174,11 @@ const Index = () => {
               }}
             >
               <Link to="/testes">
-                <div className="inline-flex flex-row items-center gap-3 border-2 border-yellow-400 bg-yellow-400 rounded-2xl px-8 py-4 shadow-xl hover:bg-yellow-300 hover:border-yellow-300 transition-all duration-200 cursor-pointer hover:scale-[1.03] active:scale-[0.98]">
-                  <span className="text-base md:text-lg font-bold text-blue-600 tracking-wide">
+                <div className="inline-flex flex-row items-center gap-4 border-2 border-yellow-400 bg-yellow-400 rounded-2xl px-10 py-5 shadow-xl hover:bg-yellow-300 hover:border-yellow-300 transition-all duration-200 cursor-pointer hover:scale-[1.03] active:scale-[0.98]">
+                  <span className="text-lg md:text-2xl font-bold text-blue-600 tracking-wide">
                     Comece Agora, é Grátis
                   </span>
-                  <ArrowRight className="h-5 w-5 text-blue-600" />
+                  <ArrowRight className="h-7 w-7 text-blue-600" />
                 </div>
               </Link>
             </div>
