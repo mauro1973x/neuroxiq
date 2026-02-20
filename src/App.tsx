@@ -52,6 +52,7 @@ const App = () => (
             <Route path="/teste-carreira" element={<TesteCarreira />} />
             <Route path="/teste-politico" element={<TestePolitico />} />
             <Route path="/teste-compatibilidade" element={<TesteCompatibilidade />} />
+            <Route path="/resultado/pending-:attemptId" element={<ResultadoPendente />} />
             <Route path="/resultado/:attemptId" element={<Resultado />} />
             <Route path="/resultado-compatibilidade/:attemptId" element={<ResultadoCompatibilidade />} />
             <Route path="/certificado/:attemptId" element={<Certificado />} />
@@ -63,7 +64,6 @@ const App = () => (
             <Route path="/termos" element={<Termos />} />
             <Route path="/privacidade" element={<Privacidade />} />
             <Route path="/contato" element={<Contato />} />
-            <Route path="/resultado/pending-:attemptId" element={<ResultadoPendente />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
