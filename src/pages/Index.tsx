@@ -88,7 +88,7 @@ const demoQuizzes: Quiz[] = [
     id: "6",
     title: "Teste de Compatibilidade Amorosa",
     description: "Descubra o nível de sintonia entre vocês. Análise afetiva e relacional em 5 dimensões psicológicas.",
-    test_type: "emotional",
+    test_type: "compatibility",
     image_url: null,
     duration_minutes: 6,
     question_count: 30,
@@ -145,7 +145,7 @@ const Index = () => {
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-accent/10 text-accent-foreground px-3 py-1.5 md:px-4 md:py-2 rounded-full mb-5 md:mb-6 animate-fade-in">
               <span className="premium-badge text-xs">Novo</span>
-              <span className="text-xs md:text-sm font-medium">Teste de Inteligência Emocional</span>
+              <span className="text-xs md:text-sm font-medium">Teste de Compatibilidade Amorosa</span>
             </div>
 
             <h1
@@ -154,8 +154,8 @@ const Index = () => {
                 animationDelay: "0.1s",
               }}
             >
-              Descubra Seu
-              <span className="text-gradient-primary"> Verdadeiro Potencial</span>
+              Conheça sua Mente e
+              <span className="text-gradient-primary"> Domine seu Futuro</span>
             </h1>
 
             <p
@@ -164,8 +164,7 @@ const Index = () => {
                 animationDelay: "0.2s",
               }}
             >
-              Testes científicos de personalidade, QI e carreira com resultados detalhados e certificados
-              personalizados.
+              Obtenha o mapa detalhado de suas habilidades com testes científicos validados, resultados e certificados personalizados, que revelam suas maiores forças e apontam o caminho exato para seu sucesso.
             </p>
 
             <div
@@ -235,7 +234,9 @@ const Index = () => {
                         ? "teste-inteligencia-emocional"
                         : quiz.test_type === "political"
                           ? "teste-politico"
-                          : undefined;
+                          : quiz.test_type === "compatibility"
+                            ? "teste-compatibilidade"
+                            : undefined;
 
               return (
                 <div key={quiz.id} id={anchorId} className="scroll-mt-24">
@@ -243,15 +244,6 @@ const Index = () => {
                 </div>
               );
             })}
-          </div>
-
-          <div className="text-center mt-8 md:mt-10">
-            <Link to="/testes">
-              <Button variant="outline" size="lg" className="min-h-[48px] text-base w-full md:w-auto">
-                Ver Todos os Testes
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
           </div>
         </div>
       </section>
