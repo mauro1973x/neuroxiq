@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { Loader2, AlertCircle, CheckCircle, Clock, XCircle, Brain, Heart, User, TrendingUp, Briefcase, Scale, RefreshCw } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle, Clock, XCircle, Brain, Heart, User, TrendingUp, Briefcase, Scale, RefreshCw, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +15,7 @@ import PremiumCareerReport from '@/components/quiz/PremiumCareerReport';
 import PremiumPersonalityReport from '@/components/quiz/PremiumPersonalityReport';
 import PremiumEmotionalReport from '@/components/quiz/PremiumEmotionalReport';
 import PremiumPoliticalReport from '@/components/quiz/PremiumPoliticalReport';
+import PremiumCompatibilityReport from '@/components/quiz/PremiumCompatibilityReport';
 import UnlockPremiumButton from '@/components/quiz/UnlockPremiumButton';
 import BuyCertificateButton from '@/components/quiz/BuyCertificateButton';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,6 +40,7 @@ import {
   calculateCategoryScores as calculatePoliticalCategoryScores,
   categoryLabels as politicalCategoryLabels
 } from '@/data/politicalQuestions';
+import { getCompatibilityResultBand, CompatibilityResultBand } from '@/data/compatibilityQuestions';
 import { useToast } from '@/hooks/use-toast';
 
 // Quiz IDs
@@ -47,8 +49,9 @@ const EMOTIONAL_QUIZ_ID = 'b2c3d4e5-f6a7-8901-bcde-f23456789012';
 const PERSONALITY_QUIZ_ID = 'c3d4e5f6-a7b8-9012-cdef-345678901234';
 const CAREER_QUIZ_ID = 'd4e5f6a7-b8c9-0123-defa-456789012345';
 const POLITICAL_QUIZ_ID = 'e5f6a7b8-c9d0-1234-efab-567890123456';
+const COMPATIBILITY_QUIZ_ID = 'f6a7b8c9-d0e1-2345-fabc-678901234567';
 
-type TestType = 'iq' | 'emotional' | 'personality' | 'career' | 'political' | 'unknown';
+type TestType = 'iq' | 'emotional' | 'personality' | 'career' | 'political' | 'compatibility' | 'unknown';
 
 interface AttemptData {
   id: string;
@@ -71,78 +74,20 @@ const getTestType = (quizId: string): TestType => {
     case PERSONALITY_QUIZ_ID: return 'personality';
     case CAREER_QUIZ_ID: return 'career';
     case POLITICAL_QUIZ_ID: return 'political';
+    case COMPATIBILITY_QUIZ_ID: return 'compatibility';
     default: return 'unknown';
   }
 };
 
 const getTestConfig = (testType: TestType) => {
   switch (testType) {
-    case 'iq':
-      return {
-        title: 'Resultado do Teste de QI',
-        subtitle: 'Análise do seu desempenho cognitivo',
-        icon: Brain,
-        color: 'from-primary to-blue-600',
-        totalQuestions: 30,
-        maxScore: 30,
-        scoreLabel: 'Acertos',
-        premiumPrice: 19.90
-      };
-    case 'emotional':
-      return {
-        title: 'Resultado do Teste Emocional',
-        subtitle: 'Análise da sua inteligência emocional',
-        icon: Heart,
-        color: 'from-rose-500 to-red-600',
-        totalQuestions: 30,
-        maxScore: 30,
-        scoreLabel: 'Pontuação QE',
-        premiumPrice: 19.90
-      };
-    case 'personality':
-      return {
-        title: 'Resultado do Teste de Personalidade',
-        subtitle: 'Análise do seu perfil Big Five (OCEAN)',
-        icon: User,
-        color: 'from-violet-500 to-purple-600',
-        totalQuestions: 40,
-        maxScore: 120,
-        scoreLabel: 'Pontuação Total',
-        premiumPrice: 19.90
-      };
-    case 'career':
-      return {
-        title: 'Resultado da Orientação de Carreira',
-        subtitle: 'Análise do seu perfil vocacional (RIASEC)',
-        icon: TrendingUp,
-        color: 'from-amber-500 to-orange-600',
-        totalQuestions: 42,
-        maxScore: 126,
-        scoreLabel: 'Pontuação Total',
-        premiumPrice: 19.90
-      };
-    case 'political':
-      return {
-        title: 'Resultado do Teste Político-Ideológico',
-        subtitle: 'Análise do seu posicionamento no espectro político',
-        icon: Scale,
-        color: 'from-red-500 to-orange-600',
-        totalQuestions: 40,
-        maxScore: 100,
-        scoreLabel: 'Posição no Espectro',
-        premiumPrice: 19.90
-      };
-    default:
-      return {
-        title: 'Resultado do Teste',
-        subtitle: 'Análise do seu desempenho',
-        icon: TrendingUp,
-        color: 'from-primary to-blue-600',
-        totalQuestions: 30,
-        maxScore: 30,
-        scoreLabel: 'Pontuação',
-        premiumPrice: 19.90
-      };
+    case 'iq': return { title: 'Resultado do Teste de QI', subtitle: 'Análise do seu desempenho cognitivo', icon: Brain, color: 'from-primary to-blue-600', totalQuestions: 30, maxScore: 30, scoreLabel: 'Acertos', premiumPrice: 19.90 };
+    case 'emotional': return { title: 'Resultado do Teste Emocional', subtitle: 'Análise da sua inteligência emocional', icon: Heart, color: 'from-rose-500 to-red-600', totalQuestions: 30, maxScore: 30, scoreLabel: 'Pontuação QE', premiumPrice: 19.90 };
+    case 'personality': return { title: 'Resultado do Teste de Personalidade', subtitle: 'Análise do seu perfil Big Five (OCEAN)', icon: User, color: 'from-violet-500 to-purple-600', totalQuestions: 40, maxScore: 120, scoreLabel: 'Pontuação Total', premiumPrice: 19.90 };
+    case 'career': return { title: 'Resultado da Orientação de Carreira', subtitle: 'Análise do seu perfil vocacional (RIASEC)', icon: TrendingUp, color: 'from-amber-500 to-orange-600', totalQuestions: 42, maxScore: 126, scoreLabel: 'Pontuação Total', premiumPrice: 19.90 };
+    case 'political': return { title: 'Resultado do Teste Político-Ideológico', subtitle: 'Análise do seu posicionamento no espectro político', icon: Scale, color: 'from-red-500 to-orange-600', totalQuestions: 40, maxScore: 100, scoreLabel: 'Posição no Espectro', premiumPrice: 19.90 };
+    case 'compatibility': return { title: 'Resultado do Teste de Compatibilidade', subtitle: 'Análise do seu perfil afetivo e relacional', icon: Flame, color: 'from-pink-500 to-rose-600', totalQuestions: 30, maxScore: 150, scoreLabel: 'Índice de Compatibilidade', premiumPrice: 19.90 };
+    default: return { title: 'Resultado do Teste', subtitle: 'Análise do seu desempenho', icon: TrendingUp, color: 'from-primary to-blue-600', totalQuestions: 30, maxScore: 30, scoreLabel: 'Pontuação', premiumPrice: 19.90 };
   }
 };
 
@@ -160,6 +105,7 @@ const Resultado = () => {
   const [personalityResultBand, setPersonalityResultBand] = useState<PersonalityResultBand | null>(null);
   const [careerResultBand, setCareerResultBand] = useState<CareerResultBand | null>(null);
   const [politicalResultBand, setPoliticalResultBand] = useState<PoliticalResultBand | null>(null);
+  const [compatibilityResultBand, setCompatibilityResultBand] = useState<CompatibilityResultBand | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -236,6 +182,11 @@ const Resultado = () => {
               setPoliticalResultBand(politicalBand as PoliticalResultBand);
             }
             break;
+          case 'compatibility': {
+            const percent = Math.round((data.total_score / 150) * 100);
+            setCompatibilityResultBand(getCompatibilityResultBand(percent));
+            break;
+          }
         }
       }
     } catch (err) {
@@ -1059,6 +1010,87 @@ const Resultado = () => {
                 attemptId={attemptId!}
                 onPaymentSuccess={() => fetchAttempt()}
               />
+            </div>
+          )}
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Render Compatibility Test Result
+  if (testType === 'compatibility' && compatibilityResultBand) {
+    const compatPercent = Math.round((score / 150) * 100);
+    type CompCat = 'communication' | 'values' | 'emotional-support' | 'lifestyle' | 'chemistry';
+    const catKeys: CompCat[] = ['communication', 'values', 'emotional-support', 'lifestyle', 'chemistry'];
+    const avgPerCat = Math.floor(score / 5);
+    const catScores = Object.fromEntries(catKeys.map((k, i) => [k, avgPerCat + (i < score % 5 ? 1 : 0)])) as Record<CompCat, number>;
+
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1 container py-12">
+          {renderPaymentAlerts()}
+          {hasPremiumAccess ? (
+            <div className="space-y-8">
+              <PremiumCompatibilityReport
+                totalScore={score}
+                compatibilityPercent={compatPercent}
+                categoryScores={catScores}
+                resultBand={compatibilityResultBand}
+                userName={user?.user_metadata?.full_name || 'Participante'}
+              />
+              <div className="max-w-2xl mx-auto">
+                <BuyCertificateButton
+                  attemptId={attemptId!}
+                  testName={attempt.test_name || 'Teste de Compatibilidade Amorosa'}
+                  hasCertificate={attempt.has_certificate || false}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              <Card className="glass-card overflow-hidden">
+                <div className="h-2 bg-gradient-to-r from-pink-500 to-rose-600" />
+                <CardHeader className="text-center pb-4">
+                  <div className="flex justify-center mb-4">
+                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-3xl shadow-lg shadow-pink-500/30">❤️</div>
+                  </div>
+                  <CardTitle className="text-2xl md:text-3xl font-display">Resultado do Teste de Compatibilidade</CardTitle>
+                  <CardDescription className="text-lg">Análise do seu perfil afetivo e relacional</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="text-center p-6 rounded-xl bg-muted/30">
+                    <div className="flex justify-center mb-3">
+                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
+                        <CheckCircle className="h-6 w-6 text-white" />
+                      </div>
+                    </div>
+                    <div className="text-lg font-semibold text-foreground mb-1">Análise Concluída</div>
+                    <p className="text-sm text-muted-foreground">Suas 30 respostas foram processadas com sucesso.</p>
+                  </div>
+                  <div className="p-5 rounded-xl bg-pink-500/5 border border-pink-500/20">
+                    <p className="text-sm text-muted-foreground leading-relaxed text-center">
+                      {attempt.result_description}
+                    </p>
+                  </div>
+                  <div className="space-y-3">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider text-center">O relatório completo inclui:</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {['Nível real de compatibilidade', 'Pontos fortes do casal', 'Riscos ocultos identificados', 'Probabilidade de longo prazo', 'Perfil do parceiro ideal', 'Recomendações práticas'].map((item, i) => (
+                        <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className="h-1.5 w-1.5 rounded-full bg-pink-500 shrink-0" />
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="pt-4 border-t">
+                    <UnlockPremiumButton attemptId={attemptId!} testType="compatibility" onPaymentInitiated={startPolling} />
+                  </div>
+                </CardContent>
+              </Card>
+              <PremiumPaywall attemptId={attemptId!} onPaymentSuccess={() => fetchAttempt()} />
             </div>
           )}
         </main>

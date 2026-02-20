@@ -6,7 +6,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
-type TestType = 'iq' | 'emotional' | 'personality' | 'career' | 'political' | 'unknown';
+type TestType = 'iq' | 'emotional' | 'personality' | 'career' | 'political' | 'compatibility' | 'unknown';
 
 interface UnlockPremiumButtonProps {
   attemptId: string;
@@ -21,6 +21,7 @@ const testTypeLabels: Record<TestType, string> = {
   personality: 'Relatório de Personalidade',
   career: 'Relatório de Carreira',
   political: 'Relatório Político',
+  compatibility: 'Análise Completa',
   unknown: 'Relatório Completo'
 };
 
@@ -30,6 +31,7 @@ const testTypeGradients: Record<TestType, string> = {
   personality: 'from-violet-500 to-purple-600',
   career: 'from-amber-500 to-orange-600',
   political: 'from-red-500 to-orange-600',
+  compatibility: 'from-pink-500 to-rose-600',
   unknown: 'from-primary to-blue-600'
 };
 
