@@ -179,11 +179,6 @@ const Index = () => {
                   <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
-              <Link to="/testes" className="w-full md:w-auto">
-                <Button variant="outline" size="xl" className="w-full min-h-[52px] text-base">
-                  Ver Todos os Testes
-                </Button>
-              </Link>
             </div>
 
             {/* Stats */}
