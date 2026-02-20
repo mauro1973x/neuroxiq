@@ -7,9 +7,6 @@ import { Progress } from '@/components/ui/progress';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { compatibilityQuestions, categoryLabels, getCompatibilityResultBand } from '@/data/compatibilityQuestions';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
 
 export const COMPATIBILITY_QUIZ_ID = 'f6a7b8c9-d0e1-2345-fabc-678901234567';
 
@@ -25,49 +22,16 @@ const scaleLabels: Record<number, string> = {
 
 const TesteCompatibilidade = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { toast } = useToast();
 
   const [phase, setPhase] = useState<TestPhase>('intro');
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(new Array(compatibilityQuestions.length).fill(null));
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [attemptId, setAttemptId] = useState<string | null>(null);
 
-  const handleStartTest = async () => {
-    if (!user) {
-      toast({
-        title: 'Login necessário',
-        description: 'Faça login para iniciar o teste e salvar seu resultado.',
-        variant: 'destructive',
-      });
-      navigate('/login');
-      return;
-    }
-
-    try {
-      const { data: attempt, error } = await supabase
-        .from('test_attempts')
-        .insert({
-          user_id: user.id,
-          quiz_id: COMPATIBILITY_QUIZ_ID,
-          started_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setAttemptId(attempt.id);
-      setPhase('test');
-    } catch (error) {
-      console.error('Error starting test:', error);
-      toast({
-        title: 'Erro ao iniciar teste',
-        description: 'Tente novamente.',
-        variant: 'destructive',
-      });
-    }
+  const handleStartTest = () => {
+    // Inicia o teste diretamente sem precisar de login ou banco de dados
+    // O attempt é criado apenas ao finalizar (ao salvar o resultado)
+    setPhase('test');
   };
 
   const handleAnswerSelect = (value: number) => {
@@ -92,43 +56,20 @@ const TesteCompatibilidade = () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    // Sum all answers (1–5 scale, 30 questions → max 150)
     const rawScore = answers.reduce((acc, val) => acc + (val ?? 3), 0);
     const percent = Math.round((rawScore / 150) * 100);
     const resultBand = getCompatibilityResultBand(percent);
 
-    if (!attemptId || !user) {
-      navigate('/');
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('test_attempts')
-        .update({
-          completed_at: new Date().toISOString(),
-          total_score: rawScore,
-          result_category: resultBand.name,
-          result_description: resultBand.freeDescription,
-          test_name: 'Teste de Compatibilidade Amorosa',
-          score_label: 'Índice de Compatibilidade',
-          score_value: `${percent}%`,
-        })
-        .eq('id', attemptId);
-
-      if (error) throw error;
-
-      navigate(`/resultado-compatibilidade/${attemptId}`);
-    } catch (error) {
-      console.error('Error saving result:', error);
-      toast({
-        title: 'Erro ao salvar resultado',
-        description: 'Resultado calculado, mas houve um erro ao salvar.',
-        variant: 'destructive',
-      });
-      navigate(`/resultado-compatibilidade/${attemptId}`);
-    }
-  }, [attemptId, user, answers, isSubmitting, navigate, toast]);
+    // Salvar resultado na sessão e redirecionar (sem depender do banco de dados)
+    const tempId = `temp-${Date.now()}`;
+    sessionStorage.setItem(`compat-result-${tempId}`, JSON.stringify({
+      score: rawScore,
+      percent,
+      resultBand,
+      isTemp: true,
+    }));
+    navigate(`/resultado-compatibilidade/${tempId}`);
+  }, [answers, isSubmitting, navigate]);
 
   const answeredCount = answers.filter((a) => a !== null).length;
   const progressPercent = ((currentQuestion + 1) / compatibilityQuestions.length) * 100;

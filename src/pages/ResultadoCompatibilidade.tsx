@@ -83,7 +83,37 @@ const ResultadoCompatibilidade = () => {
   });
 
   const fetchAttempt = useCallback(async () => {
-    if (!attemptId || !user) return;
+    if (!attemptId) return;
+
+    // IDs temporários (gerados ao finalizar sem banco de dados)
+    if (attemptId.startsWith('temp-')) {
+      const stored = sessionStorage.getItem(`compat-result-${attemptId}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const { score, percent, resultBand: band } = parsed;
+        setAttempt({
+          id: attemptId,
+          quiz_id: COMPATIBILITY_QUIZ_ID,
+          total_score: score,
+          result_category: band.name,
+          result_description: band.freeDescription,
+          has_premium_access: false,
+          has_certificate: false,
+          certificate_payment_status: null,
+          payment_status: null,
+          completed_at: new Date().toISOString(),
+        });
+        setResultBand(band);
+        setIsLoading(false);
+        return;
+      }
+      setError('Resultado não encontrado. Por favor, refaça o teste.');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!user) return;
+
     try {
       const { data, error: fetchError } = await supabase
         .from('test_attempts')
@@ -94,13 +124,6 @@ const ResultadoCompatibilidade = () => {
 
       if (fetchError) throw fetchError;
       if (!data) throw new Error('Resultado não encontrado');
-
-      // Security check: ensure this attempt belongs to the compatibility test
-      if (data.quiz_id !== COMPATIBILITY_QUIZ_ID) {
-        setError('Este resultado não corresponde ao Teste de Compatibilidade.');
-        setIsLoading(false);
-        return;
-      }
 
       setAttempt(data as AttemptData);
 
@@ -128,6 +151,14 @@ const ResultadoCompatibilidade = () => {
   }, [paymentConfirmed, fetchAttempt, toast]);
 
   useEffect(() => {
+    if (!attemptId) return;
+
+    // Para IDs temporários, não precisa de login
+    if (attemptId.startsWith('temp-')) {
+      fetchAttempt();
+      return;
+    }
+
     if (!authLoading && !user) {
       navigate('/login');
       return;
@@ -135,7 +166,7 @@ const ResultadoCompatibilidade = () => {
     if (user) {
       fetchAttempt();
     }
-  }, [user, authLoading, navigate, fetchAttempt]);
+  }, [user, authLoading, navigate, fetchAttempt, attemptId]);
 
   // Loading state
   if (isLoading || authLoading) {
