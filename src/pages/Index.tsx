@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Brain, Award, TrendingUp, Shield, Zap, Users } from "lucide-react";
+import { ArrowRight, Brain, Award, TrendingUp, Shield, Zap, Users, Star, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import QuizCard from "@/components/quiz/QuizCard";
@@ -77,20 +78,6 @@ const demoQuizzes: Quiz[] = [{
   price_premium: 49.9,
   price_certificate: 24.9,
   created_at: new Date().toISOString()
-}, {
-  id: "6",
-  title: "Teste de Compatibilidade Amorosa",
-  description: "Descubra o nível de sintonia entre vocês. Análise afetiva e relacional em 5 dimensões psicológicas.",
-  test_type: "emotional",
-  image_url: null,
-  duration_minutes: 6,
-  question_count: 30,
-  is_premium: true,
-  is_published: true,
-  price_basic: 0,
-  price_premium: 19.9,
-  price_certificate: 19.9,
-  created_at: new Date().toISOString()
 }];
 
 const features = [{
@@ -118,6 +105,56 @@ const features = [{
   title: "+50.000 Usuários",
   description: "Milhares já descobriram mais sobre si mesmos."
 }];
+
+// Dedicated card for the Compatibility test with its own icon/label
+const CompatibilityCard = () => {
+  return (
+    <div className="group glass-card p-5 md:p-6 hover:shadow-xl transition-all duration-300 md:hover:-translate-y-1 flex flex-col active:scale-[0.98]">
+      <div className="flex items-start justify-between mb-4">
+        <div
+          className="flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-xl text-xl md:text-2xl"
+          style={{ background: 'linear-gradient(135deg, #ec4899, #e11d48)' }}
+        >
+          ❤️
+        </div>
+        <span className="premium-badge text-xs">
+          <Star className="h-3 w-3" />
+          Premium
+        </span>
+      </div>
+      <div className="flex-1">
+        <Badge variant="secondary" className="mb-2.5 md:mb-3 text-xs">
+          Compatibilidade Amorosa
+        </Badge>
+        <h3 className="font-display text-lg md:text-xl font-bold mb-2 group-hover:text-primary transition-colors leading-tight">
+          Teste de Compatibilidade Amorosa
+        </h3>
+        <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
+          Descubra o nível de sintonia entre vocês. Análise afetiva e relacional em 5 dimensões psicológicas.
+        </p>
+      </div>
+      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+        <div className="flex items-center gap-1.5">
+          <Clock className="h-4 w-4" />
+          <span>6 min</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Users className="h-4 w-4" />
+          <span>30 questões</span>
+        </div>
+      </div>
+      <Link to="/teste-compatibilidade">
+        <Button
+          variant="outline"
+          className="w-full min-h-[48px] text-base group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+        >
+          Começar Teste
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </Button>
+      </Link>
+    </div>
+  );
+};
 
 const Index = () => {
   return (
@@ -195,20 +232,23 @@ const Index = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {demoQuizzes.map(quiz => {
-              // Map test_type to anchor ID
-              const anchorId = 
+              const anchorId =
                 quiz.test_type === 'iq' ? 'teste-qi' :
                 quiz.test_type === 'personality' ? 'teste-personalidade' :
                 quiz.test_type === 'career' ? 'teste-carreira' :
                 quiz.test_type === 'emotional' ? 'teste-inteligencia-emocional' :
                 quiz.test_type === 'political' ? 'teste-politico' : undefined;
-              
+
               return (
                 <div key={quiz.id} id={anchorId} className="scroll-mt-24">
                   <QuizCard quiz={quiz} />
                 </div>
               );
             })}
+            {/* Compatibility test card with its own dedicated component */}
+            <div className="scroll-mt-24">
+              <CompatibilityCard />
+            </div>
           </div>
 
           <div className="text-center mt-8 md:mt-10">
