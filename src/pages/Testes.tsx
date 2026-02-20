@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Search, Filter } from 'lucide-react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { Search, Filter, Heart, Clock, Users, ArrowRight, Star } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,52 @@ import Footer from '@/components/layout/Footer';
 import QuizCard from '@/components/quiz/QuizCard';
 import { supabase } from '@/integrations/supabase/client';
 import { QuizSecure, TestType, TEST_TYPE_LABELS } from '@/lib/types';
+
+// Card estático do Teste de Compatibilidade Amorosa
+const CompatibilityCard = () => (
+  <div className="group glass-card p-5 md:p-6 hover:shadow-xl transition-all duration-300 md:hover:-translate-y-1 flex flex-col active:scale-[0.98]">
+    <div className="flex items-start justify-between mb-4">
+      <div className="flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-xl text-xl md:text-2xl"
+           style={{ background: 'linear-gradient(135deg, #ec4899, #e11d48)' }}>
+        ❤️
+      </div>
+      <span className="premium-badge text-xs flex items-center gap-1">
+        <Star className="h-3 w-3" />
+        Premium
+      </span>
+    </div>
+    <div className="flex-1">
+      <Badge variant="secondary" className="mb-2.5 md:mb-3 text-xs">
+        Compatibilidade Amorosa
+      </Badge>
+      <h3 className="font-display text-lg md:text-xl font-bold mb-2 group-hover:text-primary transition-colors leading-tight">
+        Teste de Compatibilidade Amorosa
+      </h3>
+      <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
+        Descubra o nível de sintonia entre vocês nas dimensões mais importantes de um relacionamento.
+      </p>
+    </div>
+    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+      <div className="flex items-center gap-1.5">
+        <Clock className="h-4 w-4" />
+        <span>6 min</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <Users className="h-4 w-4" />
+        <span>30 questões</span>
+      </div>
+    </div>
+    <Link to="/teste-compatibilidade">
+      <Button
+        variant="outline"
+        className="w-full min-h-[48px] text-base group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+      >
+        Começar Teste
+        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+      </Button>
+    </Link>
+  </div>
+);
 
 const testTypes: (TestType | 'all')[] = ['all', 'iq', 'personality', 'political', 'career', 'emotional', 'cognitive'];
 
@@ -157,6 +203,11 @@ const Testes = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {/* Card estático do teste de compatibilidade */}
+              {selectedType === 'all' && (
+                !searchQuery ||
+                'compatibilidade amorosa relacionamento sintonia casal'.includes(searchQuery.toLowerCase())
+              ) && <CompatibilityCard />}
               {filteredQuizzes.map((quiz) => (
                 <QuizCard key={quiz.id} quiz={quiz} />
               ))}
