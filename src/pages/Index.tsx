@@ -279,14 +279,14 @@ const Index = () => {
         <div className="container px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4">
-              Pronto Para Se Conhecer Melhor?
+              Pronto para se conhecer melhor e transformar seu futuro?
             </h2>
             <p className="text-base md:text-lg opacity-90 mb-6 md:mb-8 leading-relaxed">
-              Crie sua conta gratuita e comece seu primeiro teste agora mesmo. Resultados básicos são sempre grátis!
+              Não deixe sua evolução para depois. Comece seu mapeamento completo agora e descubra como usar a sua mente a seu favor. Resultados básicos são gratuitos!
             </p>
-            <Link to="/cadastro" className="block md:inline-block">
+            <Link to="/testes" className="block md:inline-block">
               <Button variant="premium" size="xl" className="w-full md:w-auto min-h-[52px] text-base">
-                Criar Conta Grátis
+                Começar Grátis
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
