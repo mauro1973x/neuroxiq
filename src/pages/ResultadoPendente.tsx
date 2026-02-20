@@ -156,19 +156,13 @@ const ResultadoPendente = () => {
               <CardTitle className="text-2xl font-display">Seu Resultado</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Result Summary */}
-              <div className="p-5 rounded-xl bg-muted/50 text-center space-y-1">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-                  {pendingResult.scoreLabel}
-                </p>
-                <p className="text-3xl font-bold">{pendingResult.scoreValue}</p>
+              {/* Result Category - no score shown */}
+              <div className="p-5 rounded-xl bg-muted/50 text-center space-y-2">
                 <p className="text-lg font-semibold text-primary">{pendingResult.resultCategory}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {pendingResult.resultDescription}
+                </p>
               </div>
-
-              {/* Free Description */}
-              <p className="text-sm text-muted-foreground leading-relaxed text-center">
-                {pendingResult.resultDescription}
-              </p>
 
               {/* Blurred premium teaser */}
               <div className="relative rounded-xl overflow-hidden border border-border">
