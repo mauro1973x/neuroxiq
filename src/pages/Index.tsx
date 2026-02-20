@@ -77,6 +77,20 @@ const demoQuizzes: Quiz[] = [{
   price_premium: 49.9,
   price_certificate: 24.9,
   created_at: new Date().toISOString()
+}, {
+  id: "6",
+  title: "Teste de Compatibilidade Amorosa",
+  description: "Descubra o nível de sintonia entre vocês. Análise afetiva e relacional em 5 dimensões psicológicas.",
+  test_type: "emotional",
+  image_url: null,
+  duration_minutes: 6,
+  question_count: 30,
+  is_premium: true,
+  is_published: true,
+  price_basic: 0,
+  price_premium: 19.9,
+  price_certificate: 19.9,
+  created_at: new Date().toISOString()
 }];
 
 const features = [{
