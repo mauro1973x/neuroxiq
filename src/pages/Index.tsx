@@ -164,9 +164,8 @@ const Index = () => {
                 animationDelay: "0.2s",
               }}
             >
-              Obtenha o mapa detalhado das suas habilidades com testes científicos validados de personalidade, QI,
-              vocacionais entre outros com resultados detalhados e certificados personalizados revelando suas maiores
-              forças e apontando o caminho exato para seu sucesso.
+              Testes científicos de personalidade, QI e carreira com resultados detalhados e certificados
+              personalizados.
             </p>
 
             <div
@@ -200,7 +199,7 @@ const Index = () => {
                 <div className="text-xs md:text-sm text-muted-foreground">Usuários</div>
               </div>
               <div>
-                <div className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-foreground">5</div>
+                <div className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-foreground">6</div>
                 <div className="text-xs md:text-sm text-muted-foreground">Tipos de Teste</div>
               </div>
               <div>
