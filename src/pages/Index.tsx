@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Brain, Award, TrendingUp, Shield, Zap, Users } from "lucide-react";
+import { ArrowRight, ArrowDown, Brain, Award, TrendingUp, Shield, Zap, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -168,17 +168,17 @@ const Index = () => {
             </p>
 
             <div
-              className="flex flex-col gap-3 md:flex-row md:gap-4 justify-center animate-fade-in px-4 md:px-0"
+              className="flex justify-center animate-fade-in px-4 md:px-0"
               style={{
                 animationDelay: "0.3s",
               }}
             >
-              <Link to="/cadastro" className="w-full md:w-auto">
-                <Button variant="hero" size="xl" className="w-full min-h-[52px] text-base">
-                  Começar Agora Grátis
-                  <ArrowRight className="h-5 w-5" />
-                </Button>
-              </Link>
+              <div className="inline-flex flex-col items-center gap-2 border-2 border-primary/40 bg-primary/5 backdrop-blur-sm rounded-2xl px-8 py-4 shadow-lg">
+                <span className="text-base md:text-lg font-bold text-primary tracking-wide">
+                  Comece Agora, é Grátis
+                </span>
+                <ArrowDown className="h-5 w-5 text-primary animate-bounce" />
+              </div>
             </div>
 
             {/* Stats */}
