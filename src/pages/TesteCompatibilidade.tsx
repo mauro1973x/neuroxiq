@@ -60,12 +60,26 @@ const TesteCompatibilidade = () => {
     const percent = Math.round((rawScore / 150) * 100);
     const resultBand = getCompatibilityResultBand(percent);
 
+    // Calcular pontuação por categoria (6 questões por categoria, máx 5 pts = 30 pts)
+    const categoryMap: Record<string, number[]> = {
+      'communication':     [0,1,2,3,4,5],
+      'values':            [6,7,8,9,10,11],
+      'emotional-support': [12,13,14,15,16,17],
+      'lifestyle':         [18,19,20,21,22,23],
+      'chemistry':         [24,25,26,27,28,29],
+    };
+    const categoryScores: Record<string, number> = {};
+    for (const [cat, indices] of Object.entries(categoryMap)) {
+      categoryScores[cat] = indices.reduce((acc, idx) => acc + (answers[idx] ?? 3), 0);
+    }
+
     // Salvar resultado na sessão e redirecionar (sem depender do banco de dados)
     const tempId = `temp-${Date.now()}`;
     sessionStorage.setItem(`compat-result-${tempId}`, JSON.stringify({
       score: rawScore,
       percent,
       resultBand,
+      categoryScores,
       isTemp: true,
     }));
     navigate(`/resultado-compatibilidade/${tempId}`);
