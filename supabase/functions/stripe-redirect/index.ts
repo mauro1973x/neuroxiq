@@ -168,13 +168,15 @@ serve(async (req) => {
     logStep("Customer lookup", { customerId: customerId || 'new' });
 
     // Determine URLs
-    const origin = req.headers.get("origin") || Deno.env.get("APP_URL") || "https://id-preview--bcfe8610-8fc5-47c8-9e4c-86c65109b40f.lovable.app";
+    const origin = req.headers.get("origin") || Deno.env.get("APP_URL") || "https://neuroxiq.lovable.app";
     
     let successUrl: string;
     if (product === 'certificate') {
       successUrl = `${origin}/certificado/${attemptId}?payment=success&session_id={CHECKOUT_SESSION_ID}`;
     } else {
-      successUrl = `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`;
+      // For premium_report and bundle: redirect directly back to the result page
+      // The result page calls verify-session to unlock content synchronously
+      successUrl = `${origin}/resultado/${attemptId}?payment=success&session_id={CHECKOUT_SESSION_ID}`;
     }
     const cancelUrl = `${origin}/payment/cancel?testAttemptId=${attemptId}`;
 

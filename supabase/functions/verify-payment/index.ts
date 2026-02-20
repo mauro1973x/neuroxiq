@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 const logStep = (step: string, details?: unknown) => {
@@ -53,7 +53,8 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     logStep("Session retrieved", { 
       status: session.payment_status, 
-      paymentIntent: session.payment_intent 
+      paymentIntent: session.payment_intent,
+      purchaseType: session.metadata?.purchase_type
     });
 
     if (session.payment_status === 'paid') {
@@ -70,10 +71,11 @@ serve(async (req) => {
         logStep("Warning: Failed to update purchase", { error: purchaseUpdateError.message });
       }
 
-      // Get purchase type from metadata or database
+      // Get purchase type from Stripe session metadata
       const purchaseType = session.metadata?.purchase_type || 'premium_report';
+      logStep("Purchase type from metadata", { purchaseType });
 
-      // Update test attempt with premium access
+      // Build update payload based on purchase type
       const updateData: Record<string, unknown> = {
         payment_status: 'approved',
         purchased_at: new Date().toISOString(),
@@ -81,9 +83,21 @@ serve(async (req) => {
 
       if (purchaseType === 'premium_report' || purchaseType === 'bundle') {
         updateData.has_premium_access = true;
+        updateData.premium_unlocked_at = new Date().toISOString();
       }
+
       if (purchaseType === 'certificate' || purchaseType === 'bundle') {
+        // Generate a unique validation code for the certificate
+        const validationCode = 'NX-' + [...Array(10)].map(() =>
+          'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 36)]
+        ).join('');
+
         updateData.has_certificate = true;
+        updateData.certificate_payment_status = 'paid';
+        updateData.certificate_issued_at = new Date().toISOString();
+        updateData.validation_code = validationCode;
+        updateData.stripe_certificate_session_id = sessionId;
+        logStep("Certificate fields set", { validationCode });
       }
 
       const { error: attemptUpdateError } = await supabaseClient
@@ -96,11 +110,12 @@ serve(async (req) => {
         logStep("Warning: Failed to update attempt", { error: attemptUpdateError.message });
       }
 
-      logStep("Payment verified and access granted");
+      logStep("Payment verified and access granted", { purchaseType, fields: Object.keys(updateData) });
 
       return new Response(JSON.stringify({ 
         success: true, 
         status: 'approved',
+        purchaseType,
         hasPremiumAccess: purchaseType === 'premium_report' || purchaseType === 'bundle',
         hasCertificate: purchaseType === 'certificate' || purchaseType === 'bundle',
       }), {
