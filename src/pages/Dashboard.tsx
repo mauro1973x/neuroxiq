@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Clock, Award, FileText, ArrowRight, Crown, ChevronRight } from 'lucide-react';
+import { Clock, Award, FileText, ArrowRight, Crown, ChevronRight, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { TEST_TYPE_LABELS, TEST_TYPE_ICONS } from '@/lib/types';
 import type { TestType } from '@/lib/types';
 
@@ -29,8 +31,10 @@ interface AttemptWithQuiz {
 const Dashboard = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [attempts, setAttempts] = useState<AttemptWithQuiz[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -41,36 +45,47 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchAttempts = async () => {
       if (!user) return;
+      setFetchError(null);
 
-      const { data, error } = await supabase
-        .from('test_attempts')
-        .select(`
-          id,
-          quiz_id,
-          started_at,
-          completed_at,
-          total_score,
-          result_category,
-          has_premium_access,
-          has_certificate,
-          quizzes (
-            title,
-            test_type
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('started_at', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('test_attempts')
+          .select(`
+            id,
+            quiz_id,
+            started_at,
+            completed_at,
+            total_score,
+            result_category,
+            has_premium_access,
+            has_certificate,
+            quizzes (
+              title,
+              test_type
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('started_at', { ascending: false });
 
-      if (!error && data) {
-        setAttempts(data as unknown as AttemptWithQuiz[]);
+        if (error) throw error;
+        setAttempts((data as unknown as AttemptWithQuiz[]) || []);
+      } catch (err) {
+        console.error('[Dashboard] Error fetching attempts:', err);
+        setFetchError('Não foi possível carregar seu histórico. Tente novamente.');
+        toast({
+          title: 'Erro ao carregar histórico',
+          description: 'Não foi possível buscar seus testes. Tente recarregar a página.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     if (user) {
       fetchAttempts();
     }
-  }, [user]);
+  }, [user, toast]);
 
   if (authLoading) {
     return (
@@ -179,6 +194,22 @@ const Dashboard = () => {
                       </div>
                     </div>
                   ))
+              ) : fetchError ? (
+                <div className="p-8 md:p-12">
+                  <Alert variant="destructive" className="max-w-md mx-auto">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="ml-2">
+                      {fetchError}
+                      <Button
+                        variant="link"
+                        className="p-0 h-auto ml-2 text-destructive-foreground underline"
+                        onClick={() => window.location.reload()}
+                      >
+                        Recarregar
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                </div>
               ) : attempts.length === 0 ? (
                 <div className="p-8 md:p-12 text-center">
                   <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-full bg-muted mx-auto mb-4">

@@ -165,7 +165,7 @@ const TesteQI = () => {
                     <Brain className="h-8 w-8 md:h-10 md:w-10 text-white" />
                   </div>
                 </div>
-                <CardTitle className="text-2xl md:text-3xl font-display">Teste de QI Profissional</CardTitle>
+                <CardTitle className="text-2xl md:text-3xl font-display">Teste de QI</CardTitle>
                 <CardDescription className="text-base md:text-lg mt-2">
                   Avaliação cognitiva com 30 questões de dificuldade progressiva
                 </CardDescription>

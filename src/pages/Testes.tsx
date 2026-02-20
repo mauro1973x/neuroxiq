@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, AlertCircle, RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import QuizCard from '@/components/quiz/QuizCard';
@@ -17,14 +18,17 @@ const Testes = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [quizzes, setQuizzes] = useState<QuizSecure[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<TestType | 'all'>(
     (searchParams.get('tipo') as TestType) || 'all'
   );
 
-  useEffect(() => {
-    const fetchQuizzes = async () => {
-      setIsLoading(true);
+  const fetchQuizzes = async () => {
+    setIsLoading(true);
+    setFetchError(null);
+
+    try {
       // Use secure view that hides internal pricing data
       let query = supabase
         .from('quizzes_secure')
@@ -37,13 +41,19 @@ const Testes = () => {
 
       const { data, error } = await query;
 
-      if (!error && data) {
-        setQuizzes(data as QuizSecure[]);
-      }
+      if (error) throw error;
+      setQuizzes((data as QuizSecure[]) || []);
+    } catch (err) {
+      console.error('[Testes] Error fetching quizzes:', err);
+      setFetchError('Não foi possível carregar os testes. Verifique sua conexão e tente novamente.');
+    } finally {
       setIsLoading(false);
-    };
+    }
+  };
 
+  useEffect(() => {
     fetchQuizzes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedType]);
 
   const handleTypeChange = (type: TestType | 'all') => {
@@ -132,6 +142,21 @@ const Testes = () => {
                     <Skeleton className="h-12 w-full" />
                   </div>
                 ))}
+            </div>
+          ) : fetchError ? (
+            <div className="text-center py-12 md:py-16">
+              <Alert variant="destructive" className="max-w-md mx-auto mb-6">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="ml-2">{fetchError}</AlertDescription>
+              </Alert>
+              <Button
+                variant="outline"
+                onClick={fetchQuizzes}
+                className="min-h-[48px]"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Tentar novamente
+              </Button>
             </div>
           ) : filteredQuizzes.length === 0 ? (
             <div className="text-center py-12 md:py-16">
