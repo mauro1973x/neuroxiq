@@ -117,6 +117,6 @@ export const TEST_TYPE_ICONS: Record<TestType, string> = {
   personality: '🎭',
   political: '⚖️',
   career: '💼',
-  emotional: '❤️',
+  emotional: '✨',
   cognitive: '🔮',
 };
