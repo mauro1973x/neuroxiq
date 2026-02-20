@@ -106,7 +106,7 @@ const TesteEmocional = () => {
         scoreValue: resultBand.name,
         testType: 'emotional',
       }));
-      navigate(`/resultado/pending-${tempId}`);
+      navigate(`/resultado-pendente/${tempId}`);
       return;
     }
 

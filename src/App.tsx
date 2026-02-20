@@ -52,7 +52,7 @@ const App = () => (
             <Route path="/teste-carreira" element={<TesteCarreira />} />
             <Route path="/teste-politico" element={<TestePolitico />} />
             <Route path="/teste-compatibilidade" element={<TesteCompatibilidade />} />
-            <Route path="/resultado/pending-:attemptId" element={<ResultadoPendente />} />
+            <Route path="/resultado-pendente/:attemptId" element={<ResultadoPendente />} />
             <Route path="/resultado/:attemptId" element={<Resultado />} />
             <Route path="/resultado-compatibilidade/:attemptId" element={<ResultadoCompatibilidade />} />
             <Route path="/certificado/:attemptId" element={<Certificado />} />

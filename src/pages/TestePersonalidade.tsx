@@ -103,7 +103,7 @@ const TestePersonalidade = () => {
         scoreValue: resultBand.name,
         testType: 'personality',
       }));
-      navigate(`/resultado/pending-${tempId}`);
+      navigate(`/resultado-pendente/${tempId}`);
       return;
     }
 
