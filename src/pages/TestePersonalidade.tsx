@@ -36,40 +36,32 @@ const TestePersonalidade = () => {
   const [attemptId, setAttemptId] = useState<string | null>(null);
 
   const handleStartTest = async () => {
-    if (!user) {
-      toast({
-        title: 'Login necessário',
-        description: 'Faça login para iniciar o teste e salvar seu resultado.',
-        variant: 'destructive',
-      });
-      navigate('/login');
-      return;
-    }
+    if (user) {
+      try {
+        const { data: attempt, error } = await supabase
+          .from('test_attempts')
+          .insert({
+            user_id: user.id,
+            quiz_id: PERSONALITY_QUIZ_ID,
+            started_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
 
-    try {
-      const { data: attempt, error } = await supabase
-        .from('test_attempts')
-        .insert({
-          user_id: user.id,
-          quiz_id: PERSONALITY_QUIZ_ID,
-          started_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      setAttemptId(attempt.id);
-      setPhase('test');
-      setIsTimerRunning(true);
-    } catch (error) {
-      console.error('Error starting test:', error);
-      toast({
-        title: 'Erro ao iniciar teste',
-        description: 'Tente novamente.',
-        variant: 'destructive',
-      });
+        if (error) throw error;
+        setAttemptId(attempt.id);
+      } catch (error) {
+        console.error('Error starting test:', error);
+        toast({
+          title: 'Erro ao iniciar teste',
+          description: 'Tente novamente.',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
+    setPhase('test');
+    setIsTimerRunning(true);
   };
 
   const handleAnswerSelect = (answer: number) => {
@@ -99,8 +91,19 @@ const TestePersonalidade = () => {
     const resultBand = getPersonalityResultBand(totalScore);
     const categoryScores = getCategoryPercentages(answers);
 
-    if (!attemptId || !user) {
-      navigate(`/resultado/local?score=${totalScore}&type=personality`);
+    if (!user || !attemptId) {
+      const tempId = `temp-personality-${Date.now()}`;
+      sessionStorage.setItem(`pending-result-${tempId}`, JSON.stringify({
+        quizId: PERSONALITY_QUIZ_ID,
+        testName: 'Teste de Personalidade',
+        score: totalScore,
+        resultCategory: resultBand.name,
+        resultDescription: resultBand.freeDescription,
+        scoreLabel: 'Perfil OCEAN',
+        scoreValue: resultBand.name,
+        testType: 'personality',
+      }));
+      navigate(`/resultado/pending-${tempId}`);
       return;
     }
 
@@ -119,7 +122,6 @@ const TestePersonalidade = () => {
         .eq('id', attemptId);
 
       if (error) throw error;
-
       navigate(`/resultado/${attemptId}`);
     } catch (error) {
       console.error('Error saving result:', error);

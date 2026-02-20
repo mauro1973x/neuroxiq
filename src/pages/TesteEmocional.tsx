@@ -31,40 +31,32 @@ const TesteEmocional = () => {
   const [attemptId, setAttemptId] = useState<string | null>(null);
 
   const handleStartTest = async () => {
-    if (!user) {
-      toast({
-        title: 'Login necessário',
-        description: 'Faça login para iniciar o teste e salvar seu resultado.',
-        variant: 'destructive',
-      });
-      navigate('/login');
-      return;
-    }
+    if (user) {
+      try {
+        const { data: attempt, error } = await supabase
+          .from('test_attempts')
+          .insert({
+            user_id: user.id,
+            quiz_id: EMOTIONAL_QUIZ_ID,
+            started_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
 
-    try {
-      const { data: attempt, error } = await supabase
-        .from('test_attempts')
-        .insert({
-          user_id: user.id,
-          quiz_id: EMOTIONAL_QUIZ_ID,
-          started_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      setAttemptId(attempt.id);
-      setPhase('test');
-      setIsTimerRunning(true);
-    } catch (error) {
-      console.error('Error starting test:', error);
-      toast({
-        title: 'Erro ao iniciar teste',
-        description: 'Tente novamente.',
-        variant: 'destructive',
-      });
+        if (error) throw error;
+        setAttemptId(attempt.id);
+      } catch (error) {
+        console.error('Error starting test:', error);
+        toast({
+          title: 'Erro ao iniciar teste',
+          description: 'Tente novamente.',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
+    setPhase('test');
+    setIsTimerRunning(true);
   };
 
   const handleAnswerSelect = (answer: number) => {
@@ -102,8 +94,19 @@ const TesteEmocional = () => {
     const score = calculateScore();
     const resultBand = getEmotionalResultBand(score);
 
-    if (!attemptId || !user) {
-      navigate(`/resultado/local?score=${score}&type=emotional`);
+    if (!user || !attemptId) {
+      const tempId = `temp-emotional-${Date.now()}`;
+      sessionStorage.setItem(`pending-result-${tempId}`, JSON.stringify({
+        quizId: EMOTIONAL_QUIZ_ID,
+        testName: 'Teste de Inteligência Emocional',
+        score,
+        resultCategory: resultBand.name,
+        resultDescription: resultBand.freeDescription,
+        scoreLabel: 'Nível de QE',
+        scoreValue: resultBand.name,
+        testType: 'emotional',
+      }));
+      navigate(`/resultado/pending-${tempId}`);
       return;
     }
 
@@ -122,7 +125,6 @@ const TesteEmocional = () => {
         .eq('id', attemptId);
 
       if (error) throw error;
-
       navigate(`/resultado/${attemptId}`);
     } catch (error) {
       console.error('Error saving result:', error);

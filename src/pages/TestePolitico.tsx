@@ -47,44 +47,34 @@ const TestePolitico = () => {
     fetchResultBands();
   }, []);
 
-  // Check auth
-  useEffect(() => {
-    if (!authLoading && !user) {
-      toast({
-        title: "Autenticação necessária",
-        description: "Faça login para realizar o teste.",
-        variant: "destructive",
-      });
-      navigate('/login', { state: { from: '/teste-politico' } });
-    }
-  }, [user, authLoading, navigate, toast]);
+  // No auth check needed — test is free for non-logged users
 
   const startTest = async () => {
-    if (!user) return;
+    if (user) {
+      try {
+        const { data, error } = await supabase
+          .from('test_attempts')
+          .insert({
+            user_id: user.id,
+            quiz_id: QUIZ_ID,
+            started_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
 
-    try {
-      const { data, error } = await supabase
-        .from('test_attempts')
-        .insert({
-          user_id: user.id,
-          quiz_id: QUIZ_ID,
-          started_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setAttemptId(data.id);
-      setTestStarted(true);
-    } catch (error) {
-      console.error('Error starting test:', error);
-      toast({
-        title: "Erro ao iniciar teste",
-        description: "Tente novamente em alguns instantes.",
-        variant: "destructive",
-      });
+        if (error) throw error;
+        setAttemptId(data.id);
+      } catch (error) {
+        console.error('Error starting test:', error);
+        toast({
+          title: "Erro ao iniciar teste",
+          description: "Tente novamente em alguns instantes.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
+    setTestStarted(true);
   };
 
   const handleAnswer = (answerIndex: number) => {
@@ -108,15 +98,30 @@ const TestePolitico = () => {
   };
 
   const submitTest = useCallback(async () => {
-    if (!attemptId || isSubmitting) return;
+    if (isSubmitting) return;
     setIsSubmitting(true);
 
-    try {
-      const totalScore = calculatePoliticalScore(answers);
-      const categoryScores = calculateCategoryScores(answers);
-      const resultBand = getPoliticalResultBand(totalScore, resultBands);
+    const totalScore = calculatePoliticalScore(answers);
+    const resultBand = getPoliticalResultBand(totalScore, resultBands);
 
-      // Update test attempt with results
+    if (!user || !attemptId) {
+      // Save temporarily for non-logged users
+      const tempId = `temp-political-${Date.now()}`;
+      sessionStorage.setItem(`pending-result-${tempId}`, JSON.stringify({
+        quizId: QUIZ_ID,
+        testName: 'Teste de Orientação Político-Ideológica',
+        score: totalScore,
+        resultCategory: resultBand?.name || 'Indefinido',
+        resultDescription: resultBand?.free_description || '',
+        scoreLabel: 'Orientação',
+        scoreValue: resultBand?.name || 'Indefinido',
+        testType: 'political',
+      }));
+      navigate(`/resultado/pending-${tempId}`);
+      return;
+    }
+
+    try {
       const { error } = await supabase
         .from('test_attempts')
         .update({
@@ -147,7 +152,7 @@ const TestePolitico = () => {
       });
       setIsSubmitting(false);
     }
-  }, [attemptId, answers, resultBands, isSubmitting, navigate, toast]);
+  }, [attemptId, answers, resultBands, isSubmitting, navigate, toast, user]);
 
   const handleTimeUp = useCallback(() => {
     toast({
@@ -157,17 +162,6 @@ const TestePolitico = () => {
     });
     submitTest();
   }, [submitTest, toast]);
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!testStarted) {
     return (

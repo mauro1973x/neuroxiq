@@ -28,6 +28,7 @@ import Termos from "./pages/Termos";
 import Privacidade from "./pages/Privacidade";
 import Contato from "./pages/Contato";
 import NotFound from "./pages/NotFound";
+import ResultadoPendente from "./pages/ResultadoPendente";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ const App = () => (
             <Route path="/termos" element={<Termos />} />
             <Route path="/privacidade" element={<Privacidade />} />
             <Route path="/contato" element={<Contato />} />
+            <Route path="/resultado/pending-:attemptId" element={<ResultadoPendente />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

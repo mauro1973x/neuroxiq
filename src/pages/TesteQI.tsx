@@ -31,41 +31,34 @@ const TesteQI = () => {
   const QUIZ_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
   const handleStartTest = async () => {
-    if (!user) {
-      toast({
-        title: 'Login necessário',
-        description: 'Faça login para iniciar o teste e salvar seu resultado.',
-        variant: 'destructive',
-      });
-      navigate('/login');
-      return;
-    }
+    if (user) {
+      // Logged in: create attempt in database
+      try {
+        const { data: attempt, error } = await supabase
+          .from('test_attempts')
+          .insert({
+            user_id: user.id,
+            quiz_id: QUIZ_ID,
+            started_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
 
-    try {
-      // Create test attempt in database
-      const { data: attempt, error } = await supabase
-        .from('test_attempts')
-        .insert({
-          user_id: user.id,
-          quiz_id: QUIZ_ID,
-          started_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      setAttemptId(attempt.id);
-      setPhase('test');
-      setIsTimerRunning(true);
-    } catch (error) {
-      console.error('Error starting test:', error);
-      toast({
-        title: 'Erro ao iniciar teste',
-        description: 'Tente novamente.',
-        variant: 'destructive',
-      });
+        if (error) throw error;
+        setAttemptId(attempt.id);
+      } catch (error) {
+        console.error('Error starting test:', error);
+        toast({
+          title: 'Erro ao iniciar teste',
+          description: 'Tente novamente.',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
+    // Not logged in: start test without attempt (will save after login)
+    setPhase('test');
+    setIsTimerRunning(true);
   };
 
   const handleAnswerSelect = (answer: number) => {
@@ -103,15 +96,27 @@ const TesteQI = () => {
     const score = calculateScore();
     const resultBand = getResultBand(score);
 
-    if (!attemptId || !user) {
-      // Fallback: show result without saving
-      navigate(`/resultado/local?score=${score}`);
+    const estimatedIQ = 85 + Math.round((score / 30) * 45);
+
+    if (!user || !attemptId) {
+      // Not logged in: save result to sessionStorage and show result with login prompt
+      const tempId = `temp-qi-${Date.now()}`;
+      sessionStorage.setItem(`pending-result-${tempId}`, JSON.stringify({
+        quizId: QUIZ_ID,
+        testName: 'Teste de QI',
+        score,
+        resultCategory: resultBand.name,
+        resultDescription: resultBand.freeDescription,
+        iqEstimated: estimatedIQ,
+        scoreLabel: 'QI estimado',
+        scoreValue: String(estimatedIQ),
+        testType: 'iq',
+      }));
+      navigate(`/resultado/pending-${tempId}`);
       return;
     }
 
     try {
-      // Save result to database with certificate fields
-      const estimatedIQ = 85 + Math.round((score / 30) * 45); // Estimate IQ based on score
       const { error } = await supabase
         .from('test_attempts')
         .update({
@@ -127,8 +132,6 @@ const TesteQI = () => {
         .eq('id', attemptId);
 
       if (error) throw error;
-
-      // Navigate to result page
       navigate(`/resultado/${attemptId}`);
     } catch (error) {
       console.error('Error saving result:', error);
