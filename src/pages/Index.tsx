@@ -154,8 +154,8 @@ const Index = () => {
                 animationDelay: "0.1s",
               }}
             >
-              Descubra Sua mente
-              <span className="text-gradient-primary"> Domine Seu Futuro</span>
+              Conheça sua mente
+              <span className="text-gradient-primary"> Domine seu Futuro </span>
             </h1>
 
             <p
