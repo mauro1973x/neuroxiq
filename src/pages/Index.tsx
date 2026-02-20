@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, ArrowDown, Brain, Award, TrendingUp, Shield, Zap, Users } from "lucide-react";
+import { ArrowRight, Brain, Award, TrendingUp, Shield, Zap, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -173,12 +173,14 @@ const Index = () => {
                 animationDelay: "0.3s",
               }}
             >
-              <div className="inline-flex flex-col items-center gap-2 border-2 border-primary/40 bg-primary/5 backdrop-blur-sm rounded-2xl px-8 py-4 shadow-lg">
-                <span className="text-base md:text-lg font-bold text-primary tracking-wide">
-                  Comece Agora, é Grátis
-                </span>
-                <ArrowDown className="h-5 w-5 text-primary animate-bounce" />
-              </div>
+              <Link to="/testes">
+                <div className="inline-flex flex-row items-center gap-3 border-2 border-yellow-400 bg-yellow-400 rounded-2xl px-8 py-4 shadow-xl hover:bg-yellow-300 hover:border-yellow-300 transition-all duration-200 cursor-pointer hover:scale-[1.03] active:scale-[0.98]">
+                  <span className="text-base md:text-lg font-bold text-yellow-900 tracking-wide">
+                    Comece Agora, é Grátis
+                  </span>
+                  <ArrowRight className="h-5 w-5 text-yellow-900" />
+                </div>
+              </Link>
             </div>
 
             {/* Stats */}
