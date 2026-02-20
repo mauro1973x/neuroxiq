@@ -81,7 +81,7 @@ const Header = () => {
               <Button variant="ghost" onClick={() => navigate('/login')}>
                 Entrar
               </Button>
-              <Button variant="hero" onClick={() => navigate('/cadastro')}>
+              <Button variant="hero" onClick={() => navigate('/testes')}>
                 Começar Grátis
               </Button>
             </>
@@ -165,7 +165,7 @@ const Header = () => {
                   size="lg"
                   className="w-full min-h-[48px] text-base"
                   onClick={() => {
-                    navigate('/cadastro');
+                    navigate('/testes');
                     setIsMenuOpen(false);
                   }}
                 >
