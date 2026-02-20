@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Loader2, AlertCircle, CheckCircle, Heart, RefreshCw, Lock,
-  Clock, Zap, TrendingUp, Home, Star, Sparkles
+  Clock, Zap, TrendingUp, Home, Star, Sparkles, LogIn
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -51,6 +51,7 @@ const CompatibilityPaywall = ({
   resultBand,
   compatPercent,
   attemptId,
+  isTemp,
   startPolling,
   isPolling,
   pollingAttempts,
@@ -59,13 +60,13 @@ const CompatibilityPaywall = ({
   resultBand: CompatibilityResultBand;
   compatPercent: number;
   attemptId: string;
+  isTemp: boolean;
   startPolling: () => void;
   isPolling: boolean;
   pollingAttempts: number;
   pollingError: string | null;
 }) => {
-  const isHighScore = compatPercent >= 71;
-  const isMediumScore = compatPercent >= 41 && compatPercent < 71;
+  const navigate = useNavigate();
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
@@ -104,7 +105,7 @@ const CompatibilityPaywall = ({
         </div>
       </Card>
 
-      {/* Free summary — apenas 3 frases, sem revelar pontuação */}
+      {/* Free summary */}
       <Card className="glass-card">
         <CardHeader className="text-center pb-2">
           <div className="flex justify-center mb-3">
@@ -204,11 +205,31 @@ const CompatibilityPaywall = ({
             ⏳ Seu resultado está aguardando revelação. Disponível somente para você.
           </p>
 
-          <UnlockPremiumButton
-            attemptId={attemptId}
-            testType="compatibility"
-            onPaymentInitiated={startPolling}
-          />
+          {/* Se ID temporário (não logado), pede login antes */}
+          {isTemp ? (
+            <div className="space-y-3">
+              <Alert className="border-amber-500/50 bg-amber-500/10 text-left">
+                <LogIn className="h-4 w-4 text-amber-600" />
+                <AlertTitle className="text-amber-700">Faça login para desbloquear</AlertTitle>
+                <AlertDescription className="text-amber-600">
+                  Para garantir o acesso permanente ao seu relatório após o pagamento, é necessário criar uma conta ou entrar.
+                </AlertDescription>
+              </Alert>
+              <Button
+                onClick={() => navigate('/login')}
+                className="w-full min-h-[52px] text-base font-semibold bg-gradient-to-r from-pink-500 to-rose-600 hover:opacity-90 shadow-lg"
+              >
+                <LogIn className="h-5 w-5 mr-2" />
+                Entrar para desbloquear — R$ 19,90
+              </Button>
+            </div>
+          ) : (
+            <UnlockPremiumButton
+              attemptId={attemptId}
+              testType="compatibility"
+              onPaymentInitiated={startPolling}
+            />
+          )}
 
           <p className="text-xs text-muted-foreground">
             Pagamento 100% seguro • Stripe • Acesso liberado imediatamente após confirmação
@@ -462,6 +483,7 @@ const ResultadoCompatibilidade = () => {
           resultBand={resultBand}
           compatPercent={compatPercent}
           attemptId={attemptId!}
+          isTemp={attemptId?.startsWith('temp-') ?? false}
           startPolling={startPolling}
           isPolling={isPolling}
           pollingAttempts={pollingAttempts}

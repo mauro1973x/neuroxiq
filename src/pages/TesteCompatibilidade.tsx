@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { compatibilityQuestions, categoryLabels, getCompatibilityResultBand } from '@/data/compatibilityQuestions';
+import { supabase } from '@/integrations/supabase/client';
 
 export const COMPATIBILITY_QUIZ_ID = 'f6a7b8c9-d0e1-2345-fabc-678901234567';
 
@@ -73,7 +74,47 @@ const TesteCompatibilidade = () => {
       categoryScores[cat] = indices.reduce((acc, idx) => acc + (answers[idx] ?? 3), 0);
     }
 
-    // Salvar resultado na sessão e redirecionar (sem depender do banco de dados)
+    // Tenta salvar no banco se usuário estiver logado
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      try {
+        const { data: attempt, error } = await supabase
+          .from('test_attempts')
+          .insert({
+            user_id: user.id,
+            quiz_id: COMPATIBILITY_QUIZ_ID,
+            total_score: rawScore,
+            result_category: resultBand.name,
+            result_description: resultBand.freeDescription,
+            test_name: 'Compatibilidade Amorosa',
+            score_label: 'Compatibilidade',
+            score_value: `${percent}%`,
+            completed_at: new Date().toISOString(),
+            payment_status: 'none',
+            has_premium_access: false,
+            has_certificate: false,
+          })
+          .select('id')
+          .single();
+
+        if (!error && attempt) {
+          // Salva também no sessionStorage para acesso rápido às categorias
+          sessionStorage.setItem(`compat-result-${attempt.id}`, JSON.stringify({
+            score: rawScore,
+            percent,
+            resultBand,
+            categoryScores,
+          }));
+          navigate(`/resultado-compatibilidade/${attempt.id}`);
+          return;
+        }
+      } catch (err) {
+        console.warn('[COMPAT] Falha ao salvar no banco, usando sessão local:', err);
+      }
+    }
+
+    // Fallback: sessão local (usuário não logado ou erro no banco)
     const tempId = `temp-${Date.now()}`;
     sessionStorage.setItem(`compat-result-${tempId}`, JSON.stringify({
       score: rawScore,
