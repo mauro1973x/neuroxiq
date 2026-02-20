@@ -154,8 +154,8 @@ const Index = () => {
                 animationDelay: "0.1s",
               }}
             >
-              Conheça sua mente
-              <span className="text-gradient-primary"> Domine seu Futuro </span>
+              Descubra Seu
+              <span className="text-gradient-primary"> Verdadeiro Potencial</span>
             </h1>
 
             <p
@@ -164,8 +164,9 @@ const Index = () => {
                 animationDelay: "0.2s",
               }}
             >
-              Testes científicos de personalidade, QI e carreira com resultados detalhados e certificados
-              personalizados.
+              Obtenha o mapa detalhado das suas habilidades com testes científicos validados de personalidade, QI,
+              vocacionais entre outros com resultados detalhados e certificados personalizados revelando suas maiores
+              forças e apontando o caminho exato para seu sucesso.
             </p>
 
             <div
