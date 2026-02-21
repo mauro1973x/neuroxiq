@@ -12,7 +12,7 @@ import QuizCard from '@/components/quiz/QuizCard';
 import { supabase } from '@/integrations/supabase/client';
 import { QuizSecure, TestType, TEST_TYPE_LABELS } from '@/lib/types';
 
-const testTypes: (TestType | 'all')[] = ['all', 'iq', 'personality', 'political', 'career', 'emotional', 'cognitive'];
+const testTypes: (TestType | 'all')[] = ['all', 'iq', 'personality', 'political', 'career', 'emotional', 'compatibility'];
 
 const Testes = () => {
   const [searchParams, setSearchParams] = useSearchParams();

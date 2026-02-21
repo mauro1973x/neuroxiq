@@ -235,21 +235,20 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
       );
     }
 
-    // Normal button
+    // Normal button - uses create-checkout edge function to pass metadata
     return (
-      <a
-        href="https://buy.stripe.com/eVq14p2C01U93vh1ML6J201"
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`flex items-center justify-center gap-2 w-full min-h-[48px] text-base font-medium rounded-lg px-4 py-2 transition-all active:scale-[0.98] cursor-pointer no-underline ${
+      <button
+        onClick={() => handleClick(product.id)}
+        disabled={isAnyLoading}
+        className={`flex items-center justify-center gap-2 w-full min-h-[48px] text-base font-medium rounded-lg px-4 py-2 transition-all active:scale-[0.98] cursor-pointer border-0 ${
           product.isBest 
             ? 'bg-gradient-to-r from-accent to-accent/80 text-accent-foreground hover:opacity-90' 
             : 'bg-primary text-primary-foreground hover:opacity-90'
-        }`}
+        } ${isAnyLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <CreditCard className="h-4 w-4" />
         Pagar Agora
-      </a>
+      </button>
     );
   };
 

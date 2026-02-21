@@ -277,9 +277,9 @@ const Dashboard = () => {
                             )}
                           </>
                         ) : (
-                          <Link to={`/teste/${attempt.quiz_id}/continuar`} className="flex-1">
+                          <Link to="/testes" className="flex-1">
                             <Button variant="default" size="sm" className="w-full min-h-[44px] md:min-h-[36px]">
-                              Continuar
+                              Refazer
                               <ArrowRight className="h-4 w-4 ml-1" />
                             </Button>
                           </Link>
