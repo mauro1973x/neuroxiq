@@ -205,20 +205,18 @@ const UnlockPremiumButton = ({
     );
   }
 
-  // Main button
+  // Main button - uses create-checkout edge function to pass metadata
   return (
-    <a
-      href="https://buy.stripe.com/eVq14p2C01U93vh1ML6J201"
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`flex items-center justify-center w-full min-h-[52px] md:min-h-[48px] text-base md:text-base font-semibold bg-gradient-to-r ${gradient} hover:opacity-90 active:scale-[0.98] transition-all shadow-lg rounded-lg text-white px-4 py-3 cursor-pointer no-underline ${className}`}
+    <button
+      onClick={handleClick}
+      className={`flex items-center justify-center w-full min-h-[52px] md:min-h-[48px] text-base md:text-base font-semibold bg-gradient-to-r ${gradient} hover:opacity-90 active:scale-[0.98] transition-all shadow-lg rounded-lg text-white px-4 py-3 cursor-pointer border-0 ${className}`}
     >
       <Sparkles className="h-5 w-5 mr-2" />
       <span className="flex flex-col md:flex-row md:items-center md:gap-1.5">
         <span>Desbloquear {label}</span>
         <span className="text-sm md:text-base opacity-90">R$ {PREMIUM_PRICE.toFixed(2).replace('.', ',')}</span>
       </span>
-    </a>
+    </button>
   );
 };
 
