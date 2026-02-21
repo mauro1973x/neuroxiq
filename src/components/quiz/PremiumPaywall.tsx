@@ -238,7 +238,7 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
     // Normal button
     return (
       <a
-        href="https://buy.stripe.com/eVq7sN4K8fKZ2rddvt6J200"
+        href="https://buy.stripe.com/eVq14p2C01U93vh1ML6J201"
         target="_blank"
         rel="noopener noreferrer"
         className={`flex items-center justify-center gap-2 w-full min-h-[48px] text-base font-medium rounded-lg px-4 py-2 transition-all active:scale-[0.98] cursor-pointer no-underline ${
