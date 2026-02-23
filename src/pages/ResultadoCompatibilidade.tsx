@@ -216,7 +216,7 @@ const CompatibilityPaywall = ({
                 </AlertDescription>
               </Alert>
               <Button
-                onClick={() => navigate('/login')}
+                onClick={() => navigate(`/login?returnTo=${encodeURIComponent(`/resultado-compatibilidade/${attemptId}`)}`)}
                 className="w-full min-h-[52px] text-base font-semibold bg-gradient-to-r from-pink-500 to-rose-600 hover:opacity-90 shadow-lg"
               >
                 <LogIn className="h-5 w-5 mr-2" />
@@ -261,6 +261,7 @@ const ResultadoCompatibilidade = () => {
   const [resultBand, setResultBand] = useState<CompatibilityResultBand | null>(null);
   const [categoryAnswers, setCategoryAnswers] = useState<Record<CompCat, number> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMigratingTempAttempt, setIsMigratingTempAttempt] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const {
@@ -353,21 +354,98 @@ const ResultadoCompatibilidade = () => {
       return;
     }
     if (!authLoading && !user) {
-      navigate('/login');
+      navigate(`/login?returnTo=${encodeURIComponent(`/resultado-compatibilidade/${attemptId}`)}`);
       return;
     }
     if (user) fetchAttempt();
   }, [user, authLoading, navigate, fetchAttempt, attemptId]);
 
+  // If user logged in on a temp result, persist it and redirect to real attempt id.
+  useEffect(() => {
+    if (!attemptId?.startsWith('temp-') || !user || isMigratingTempAttempt) return;
+
+    const migrateTempAttempt = async () => {
+      const stored = sessionStorage.getItem(`compat-result-${attemptId}`);
+      if (!stored) return;
+
+      setIsMigratingTempAttempt(true);
+      try {
+        const parsed = JSON.parse(stored);
+        const score = Number(parsed?.score ?? 0);
+        const percent = Number(parsed?.percent ?? Math.round((score / 150) * 100));
+        const band = parsed?.resultBand || resultBand;
+        const categoryScores = parsed?.categoryScores || categoryAnswers;
+
+        if (!band || !Number.isFinite(score) || score <= 0) {
+          throw new Error('Dados temporários inválidos para salvar o resultado.');
+        }
+
+        const { data: newAttempt, error: insertError } = await supabase
+          .from('test_attempts')
+          .insert({
+            user_id: user.id,
+            quiz_id: COMPATIBILITY_QUIZ_ID,
+            total_score: score,
+            result_category: band.name,
+            result_description: band.freeDescription,
+            test_name: 'Compatibilidade Amorosa',
+            score_label: 'Compatibilidade',
+            score_value: `${percent}%`,
+            completed_at: new Date().toISOString(),
+            payment_status: 'none',
+            has_premium_access: false,
+            has_certificate: false,
+          })
+          .select('id')
+          .single();
+
+        if (insertError || !newAttempt) {
+          throw insertError || new Error('Falha ao criar tentativa persistida');
+        }
+
+        sessionStorage.setItem(
+          `compat-result-${newAttempt.id}`,
+          JSON.stringify({
+            score,
+            percent,
+            resultBand: band,
+            categoryScores,
+          })
+        );
+        sessionStorage.removeItem(`compat-result-${attemptId}`);
+
+        toast({
+          title: 'Resultado salvo com sucesso!',
+          description: 'Redirecionando para seu resultado completo.',
+        });
+
+        navigate(`/resultado-compatibilidade/${newAttempt.id}`, { replace: true });
+      } catch (err) {
+        console.error('[COMPATIBILIDADE] Error migrating temp attempt:', err);
+        toast({
+          title: 'Erro ao salvar seu resultado',
+          description: 'Tente atualizar a página e fazer login novamente.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsMigratingTempAttempt(false);
+      }
+    };
+
+    migrateTempAttempt();
+  }, [attemptId, user, isMigratingTempAttempt, resultBand, categoryAnswers, navigate, toast]);
+
   // Loading
-  if (isLoading || authLoading) {
+  if (isLoading || authLoading || isMigratingTempAttempt) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4">
             <Loader2 className="h-12 w-12 animate-spin text-pink-500 mx-auto" />
-            <p className="text-muted-foreground">Carregando seu resultado...</p>
+            <p className="text-muted-foreground">
+              {isMigratingTempAttempt ? 'Salvando seu resultado...' : 'Carregando seu resultado...'}
+            </p>
           </div>
         </main>
         <Footer />

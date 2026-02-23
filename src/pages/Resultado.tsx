@@ -303,7 +303,8 @@ const Resultado = () => {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/login');
+      const returnTo = attemptId ? `/resultado/${attemptId}` : '/dashboard';
+      navigate(`/login?returnTo=${encodeURIComponent(returnTo)}`);
       return;
     }
 

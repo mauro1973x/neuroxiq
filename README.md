@@ -1,73 +1,75 @@
-# Welcome to your Lovable project
+# NeuroXIQ - Setup local e pagamentos
 
-## Project info
+## Requisitos
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+- Node.js 20+
+- npm 10+
+- Projeto Supabase configurado (mesmo projeto usado em produção)
+- Stripe configurado (chaves e webhook)
 
-## How can I edit this code?
+## Rodar o frontend local
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+1. Instale dependências:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+npm install
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Crie/ajuste o `.env`:
 
-# Step 3: Install the necessary dependencies.
-npm i
+```env
+VITE_SUPABASE_URL="https://SEU_PROJETO.supabase.co"
+VITE_SUPABASE_PUBLISHABLE_KEY="SUA_ANON_KEY"
+VITE_SUPABASE_PROJECT_ID="SEU_PROJECT_ID"
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Inicie o app:
+
+```sh
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+4. Abra no navegador:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```text
+http://localhost:5173
+```
 
-**Use GitHub Codespaces**
+## Rodar funções Supabase localmente (opcional, recomendado para debug)
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```sh
+supabase start
+supabase functions serve --env-file ./supabase/.env.local
+```
 
-## What technologies are used for this project?
+Exemplo de `supabase/.env.local` para funções:
 
-This project is built with:
+```env
+SUPABASE_URL="http://127.0.0.1:54321"
+SUPABASE_ANON_KEY="..."
+SUPABASE_SERVICE_ROLE_KEY="..."
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+STRIPE_SECRET_KEY="sk_test_... ou sk_live_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+APP_URL="http://localhost:5173"
+```
 
-## How can I deploy this project?
+## Variáveis críticas para checkout no domínio próprio
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+No ambiente das Edge Functions (produção), valide:
 
-## Can I connect a custom domain to my Lovable project?
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_ANON_KEY`
+- `APP_URL` (ex: `https://www.seudominio.com.br`)
 
-Yes, you can!
+Sem `APP_URL` correto, os redirecionamentos de retorno/cancelamento podem ir para domínio errado.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Comandos úteis
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- `npm run dev` -> desenvolvimento
+- `npm run build` -> build produção
+- `npm run preview` -> validar build local
+- `npm run lint` -> checagem de lint
+- `npm run test` -> testes com Vitest

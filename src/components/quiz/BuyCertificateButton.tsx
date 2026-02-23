@@ -55,6 +55,13 @@ const BuyCertificateButton = ({
 
       if (error) {
         console.error('[BUY-CERTIFICATE] Edge function error:', error);
+        if (error.message?.includes('401') || error.message?.includes('403') ||
+            error.message?.includes('not authenticated') || error.message?.includes('Unauthorized')) {
+          setErrorMessage('Faça login para continuar');
+          setButtonState('error');
+          navigate(`/login?returnTo=${encodeURIComponent(`/resultado/${attemptId}`)}`);
+          return;
+        }
         throw new Error(error.message || 'Erro ao criar sessão de pagamento');
       }
 
