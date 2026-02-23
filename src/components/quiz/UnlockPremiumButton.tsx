@@ -124,7 +124,7 @@ const UnlockPremiumButton = ({
             title: "Autenticação necessária",
             description: "Faça login para continuar"
           });
-          navigate('/login');
+          navigate(`/login?returnTo=${encodeURIComponent(`/resultado/${attemptId}`)}`);
           return;
         }
 

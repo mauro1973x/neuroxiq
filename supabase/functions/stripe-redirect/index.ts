@@ -14,6 +14,28 @@ const logStep = (step: string, details?: unknown) => {
   console.log(`[STRIPE-REDIRECT] ${step}${detailsStr}`);
 };
 
+const getRequestOrigin = (req: Request): string => {
+  const originHeader = req.headers.get("origin");
+  if (originHeader) return originHeader;
+
+  const refererHeader = req.headers.get("referer");
+  if (refererHeader) {
+    try {
+      return new URL(refererHeader).origin;
+    } catch {
+      // Ignore invalid referer and continue fallback chain.
+    }
+  }
+
+  const forwardedHost = req.headers.get("x-forwarded-host");
+  if (forwardedHost) {
+    const forwardedProto = req.headers.get("x-forwarded-proto") || "https";
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+
+  return Deno.env.get("APP_URL") || "http://localhost:5173";
+};
+
 serve(async (req) => {
   // Only allow GET requests
   if (req.method !== "GET") {
@@ -103,7 +125,7 @@ serve(async (req) => {
 
     if (!user?.email) {
       // Redirect to login with return URL
-      const origin = req.headers.get("origin") || Deno.env.get("APP_URL") || "https://id-preview--bcfe8610-8fc5-47c8-9e4c-86c65109b40f.lovable.app";
+      const origin = getRequestOrigin(req);
       const returnUrl = encodeURIComponent(`/resultado/${attemptId}`);
       const loginUrl = `${origin}/login?returnTo=${returnUrl}`;
       logStep("User not authenticated, redirecting to login");
@@ -168,7 +190,7 @@ serve(async (req) => {
     logStep("Customer lookup", { customerId: customerId || 'new' });
 
     // Determine URLs
-    const origin = req.headers.get("origin") || Deno.env.get("APP_URL") || "https://neuroxiq.lovable.app";
+    const origin = getRequestOrigin(req);
     
     let successUrl: string;
     if (product === 'certificate') {
@@ -180,7 +202,7 @@ serve(async (req) => {
     }
     const cancelUrl = `${origin}/payment/cancel?testAttemptId=${attemptId}`;
 
-    // Create checkout session with automatic payment methods
+    // Create checkout session requesting card + PIX first
     const baseConfig: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -215,9 +237,9 @@ serve(async (req) => {
         ...baseConfig,
         automatic_payment_methods: { enabled: true },
       });
-      logStep("Session created with automatic payment methods", { sessionId: session.id });
-    } catch (autoError) {
-      logStep("Automatic payment methods failed, trying card-only", { error: autoError instanceof Error ? autoError.message : String(autoError) });
+      logStep("Session created with card + PIX", { sessionId: session.id });
+    } catch (cardPixError) {
+      logStep("Card + PIX failed, trying card-only", { error: cardPixError instanceof Error ? cardPixError.message : String(cardPixError) });
       session = await stripe.checkout.sessions.create({
         ...baseConfig,
         payment_method_types: ['card'],

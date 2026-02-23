@@ -18,7 +18,7 @@ const Login = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/dashboard';
+  const redirectTo = searchParams.get('returnTo') || searchParams.get('redirect') || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,7 +128,7 @@ const Login = () => {
               <p className="text-sm text-muted-foreground">
                 Não tem uma conta?{' '}
                 <Link
-                  to="/cadastro"
+                  to={`/cadastro?returnTo=${encodeURIComponent(redirectTo)}`}
                   className="text-primary font-medium hover:underline"
                 >
                   Cadastre-se grátis

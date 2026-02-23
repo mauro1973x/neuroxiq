@@ -12,6 +12,28 @@ const logStep = (step: string, details?: unknown) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
+const getRequestOrigin = (req: Request): string => {
+  const originHeader = req.headers.get("origin");
+  if (originHeader) return originHeader;
+
+  const refererHeader = req.headers.get("referer");
+  if (refererHeader) {
+    try {
+      return new URL(refererHeader).origin;
+    } catch {
+      // Ignore invalid referer and continue fallback chain.
+    }
+  }
+
+  const forwardedHost = req.headers.get("x-forwarded-host");
+  if (forwardedHost) {
+    const forwardedProto = req.headers.get("x-forwarded-proto") || "https";
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+
+  return Deno.env.get("APP_URL") || "http://localhost:5173";
+};
+
 interface CheckoutRequest {
   attemptId: string;
   purchaseType: 'premium_report' | 'certificate' | 'bundle';
@@ -134,7 +156,7 @@ serve(async (req) => {
     logStep("Customer lookup", { customerId: customerId || 'new customer' });
 
     // Determine success URL based on purchase type - redirect directly to result page
-    const origin = req.headers.get("origin") || "https://id-preview--bcfe8610-8fc5-47c8-9e4c-86c65109b40f.lovable.app";
+    const origin = getRequestOrigin(req);
     let successUrl: string;
     
     if (purchaseType === 'certificate') {
@@ -174,37 +196,44 @@ serve(async (req) => {
     let session: Stripe.Checkout.Session;
     let pixAvailable = true;
 
-    try {
-      // First attempt: use automatic_payment_methods (includes PIX if available)
-      const sessionWithAuto = await stripe.checkout.sessions.create({
+    if (paymentMethod === 'pix') {
+      session = await stripe.checkout.sessions.create({
         ...baseSessionConfig,
-        automatic_payment_methods: {
-          enabled: true,
-        },
+        payment_method_types: ['pix'],
       });
-      session = sessionWithAuto;
-      logStep("Checkout session created with automatic payment methods", { sessionId: session.id });
-    } catch (autoError) {
-      const errorMessage = autoError instanceof Error ? autoError.message : String(autoError);
-      logStep("Automatic payment methods failed, trying card-only fallback", { error: errorMessage });
-      
-      // Check if error is PIX-related
-      if (errorMessage.includes("pix") || errorMessage.includes("payment method")) {
-        pixAvailable = false;
-      }
-
+      logStep("Checkout session created with PIX", { sessionId: session.id });
+    } else {
       try {
-        // Fallback: card only
-        const sessionCardOnly = await stripe.checkout.sessions.create({
+        // First attempt: explicitly request card + PIX.
+        // If PIX is not enabled/available on the Stripe account, fallback handles card-only.
+        const sessionWithCardAndPix = await stripe.checkout.sessions.create({
           ...baseSessionConfig,
-          payment_method_types: ['card'],
+          payment_method_types: ['card', 'pix'],
         });
-        session = sessionCardOnly;
-        logStep("Checkout session created with card-only fallback", { sessionId: session.id });
-      } catch (cardError) {
-        const cardErrorMessage = cardError instanceof Error ? cardError.message : String(cardError);
-        logStep("Card-only fallback also failed", { error: cardErrorMessage });
-        throw cardError;
+        session = sessionWithCardAndPix;
+        logStep("Checkout session created with card + PIX", { sessionId: session.id });
+      } catch (cardPixError) {
+        const errorMessage = cardPixError instanceof Error ? cardPixError.message : String(cardPixError);
+        logStep("Card + PIX failed, trying card-only fallback", { error: errorMessage });
+        
+        // Check if error is PIX-related
+        if (errorMessage.includes("pix") || errorMessage.includes("payment method")) {
+          pixAvailable = false;
+        }
+
+        try {
+          // Fallback: card only
+          const sessionCardOnly = await stripe.checkout.sessions.create({
+            ...baseSessionConfig,
+            payment_method_types: ['card'],
+          });
+          session = sessionCardOnly;
+          logStep("Checkout session created with card-only fallback", { sessionId: session.id });
+        } catch (cardError) {
+          const cardErrorMessage = cardError instanceof Error ? cardError.message : String(cardError);
+          logStep("Card-only fallback also failed", { error: cardErrorMessage });
+          throw cardError;
+        }
       }
     }
 
