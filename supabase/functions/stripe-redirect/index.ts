@@ -15,6 +15,11 @@ const logStep = (step: string, details?: unknown) => {
 };
 
 const getRequestOrigin = (req: Request): string => {
+  const appUrl = Deno.env.get("APP_URL");
+  if (appUrl && appUrl.startsWith("http")) {
+    return appUrl.replace(/\/$/, "");
+  }
+
   const originHeader = req.headers.get("origin");
   if (originHeader) return originHeader;
 
@@ -33,7 +38,7 @@ const getRequestOrigin = (req: Request): string => {
     return `${forwardedProto}://${forwardedHost}`;
   }
 
-  return Deno.env.get("APP_URL") || "http://localhost:5173";
+  return "http://localhost:5173";
 };
 
 serve(async (req) => {
