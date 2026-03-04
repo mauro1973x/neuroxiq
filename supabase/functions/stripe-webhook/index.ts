@@ -1,20 +1,19 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-
-const logStep = (step: string, details?: unknown) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
-};
+import { createLogger } from "../_shared/logger.ts";
 
 serve(async (req) => {
+  const logger = createLogger("stripe-webhook", req);
+  const requestLog = logger.logStep;
+
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
   // deno-lint-ignore no-explicit-any
   const supabase: any = createClient(supabaseUrl, supabaseKey);
 
   try {
-    logStep("Webhook received");
+    requestLog("Webhook received");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -27,7 +26,7 @@ serve(async (req) => {
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     
     if (!webhookSecret) {
-      logStep("CRITICAL: STRIPE_WEBHOOK_SECRET not configured - rejecting request");
+      requestLog("CRITICAL: STRIPE_WEBHOOK_SECRET not configured - rejecting request");
       return new Response(
         JSON.stringify({ error: "Webhook secret not configured" }), 
         { status: 500 }
@@ -35,7 +34,7 @@ serve(async (req) => {
     }
 
     if (!signature) {
-      logStep("Missing stripe-signature header - rejecting request");
+      requestLog("Missing stripe-signature header - rejecting request");
       return new Response(
         JSON.stringify({ error: "Missing signature" }), 
         { status: 400 }
@@ -45,20 +44,20 @@ serve(async (req) => {
     let event: Stripe.Event;
     try {
       event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
-      logStep("Webhook signature verified successfully");
+      requestLog("Webhook signature verified successfully");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
-      logStep("Webhook signature verification failed", { error: message });
+      requestLog("Webhook signature verification failed", { error: message });
       return new Response(JSON.stringify({ error: message }), { status: 400 });
     }
 
-    logStep("Event received", { type: event.type, eventId: event.id, livemode: event.livemode });
+    requestLog("Event received", { type: event.type, eventId: event.id, livemode: event.livemode });
 
     // SECURITY: In LIVE mode, only process LIVE events
     // This prevents test card payments from unlocking content in production
     const isProduction = Deno.env.get("STRIPE_SECRET_KEY")?.startsWith("sk_live");
     if (isProduction && !event.livemode) {
-      logStep("SECURITY: Rejecting test mode event in production", { 
+      requestLog("SECURITY: Rejecting test mode event in production", {
         eventId: event.id, 
         livemode: event.livemode,
         isProduction: true
@@ -95,7 +94,7 @@ serve(async (req) => {
       .single();
 
     if (existingEvent?.processed) {
-      logStep("Event already processed, skipping", { eventId: event.id });
+      requestLog("Event already processed, skipping", { eventId: event.id });
       return new Response(JSON.stringify({ received: true, skipped: true }), { status: 200 });
     }
 
@@ -120,7 +119,7 @@ serve(async (req) => {
       });
 
     if (insertError && !insertError.message?.includes('duplicate')) {
-      logStep("Warning: Failed to log event", { error: insertError.message });
+      requestLog("Warning: Failed to log event", { error: insertError.message });
     }
 
     let processError: string | null = null;
@@ -128,7 +127,7 @@ serve(async (req) => {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        logStep("Checkout session completed", { 
+        requestLog("Checkout session completed", {
           sessionId: session.id, 
           paymentStatus: session.payment_status,
           livemode: session.livemode
@@ -136,9 +135,9 @@ serve(async (req) => {
 
         // ONLY unlock if payment_status is 'paid' AND event is livemode (in production)
         if (session.payment_status === 'paid') {
-          await handleSuccessfulPayment(supabase, session, event.id, event.livemode);
+          await handleSuccessfulPayment(supabase, session, event.id, event.livemode, requestLog);
         } else {
-          logStep("Payment status not 'paid', skipping unlock", { 
+          requestLog("Payment status not 'paid', skipping unlock", {
             paymentStatus: session.payment_status 
           });
         }
@@ -148,14 +147,14 @@ serve(async (req) => {
       case 'checkout.session.async_payment_succeeded': {
         // For PIX payments that complete asynchronously
         const session = event.data.object as Stripe.Checkout.Session;
-        logStep("Async payment succeeded (PIX)", { sessionId: session.id, livemode: session.livemode });
-        await handleSuccessfulPayment(supabase, session, event.id, event.livemode);
+        requestLog("Async payment succeeded (PIX)", { sessionId: session.id, livemode: session.livemode });
+        await handleSuccessfulPayment(supabase, session, event.id, event.livemode, requestLog);
         break;
       }
 
       case 'checkout.session.async_payment_failed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        logStep("Async payment failed", { sessionId: session.id });
+        requestLog("Async payment failed", { sessionId: session.id });
         
         await supabase
           .from('premium_purchases')
@@ -171,7 +170,7 @@ serve(async (req) => {
 
       case 'checkout.session.expired': {
         const session = event.data.object as Stripe.Checkout.Session;
-        logStep("Checkout session expired", { sessionId: session.id });
+        requestLog("Checkout session expired", { sessionId: session.id });
         
         await supabase
           .from('premium_purchases')
@@ -182,7 +181,7 @@ serve(async (req) => {
 
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        logStep("Payment intent succeeded", { 
+        requestLog("Payment intent succeeded", {
           paymentIntentId: paymentIntent.id,
           amount: paymentIntent.amount,
           status: paymentIntent.status,
@@ -195,7 +194,7 @@ serve(async (req) => {
 
       case 'payment_intent.processing': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        logStep("Payment intent processing (async payment like PIX)", { 
+        requestLog("Payment intent processing (async payment like PIX)", {
           paymentIntentId: paymentIntent.id,
           amount: paymentIntent.amount
         });
@@ -204,7 +203,7 @@ serve(async (req) => {
       }
 
       default:
-        logStep("Unhandled event type", { type: event.type });
+        requestLog("Unhandled event type", { type: event.type });
     }
 
     // Mark event as processed
@@ -217,11 +216,11 @@ serve(async (req) => {
       })
       .eq('stripe_event_id', event.id);
 
-    logStep("Event processing completed", { eventId: event.id });
+    requestLog("Event processing completed", { eventId: event.id });
     return new Response(JSON.stringify({ received: true }), { status: 200 });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message: errorMessage });
+    logger.error("webhook_failed", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), { status: 500 });
   }
 });
@@ -231,16 +230,17 @@ async function handleSuccessfulPayment(
   supabase: any,
   session: Stripe.Checkout.Session,
   eventId: string,
-  livemode: boolean
+  livemode: boolean,
+  requestLog: (step: string, details?: unknown) => void
 ) {
   const attemptId = session.metadata?.attempt_id;
   const userId = session.metadata?.user_id;
   const purchaseType = session.metadata?.purchase_type || 'premium_report';
 
-  logStep("Processing successful payment", { attemptId, userId, purchaseType, eventId, livemode });
+  requestLog("Processing successful payment", { attemptId, userId, purchaseType, eventId, livemode });
 
   if (!attemptId || !userId) {
-    logStep("Missing metadata", { attemptId, userId });
+    requestLog("Missing metadata", { attemptId, userId });
     return;
   }
 
@@ -256,7 +256,7 @@ async function handleSuccessfulPayment(
   
   if (purchaseType === 'premium_report' || purchaseType === 'bundle') {
     if (existingAttempt?.has_premium_access) {
-      logStep("Report already unlocked, skipping", { attemptId });
+      requestLog("Report already unlocked, skipping", { attemptId });
     } else {
       updateFields.has_premium_access = true;
       updateFields.payment_status = 'approved';
@@ -267,7 +267,7 @@ async function handleSuccessfulPayment(
   
   if (purchaseType === 'certificate' || purchaseType === 'bundle') {
     if (existingAttempt?.has_certificate) {
-      logStep("Certificate already unlocked, skipping", { attemptId });
+      requestLog("Certificate already unlocked, skipping", { attemptId });
     } else {
       // Generate unique validation code
       const validationCode = 'NX-' + [...Array(10)].map(() => 
@@ -284,7 +284,7 @@ async function handleSuccessfulPayment(
 
   // Only update if there are fields to update
   if (Object.keys(updateFields).length === 0) {
-    logStep("No updates needed, already processed", { attemptId, purchaseType });
+    requestLog("No updates needed, already processed", { attemptId, purchaseType });
     return;
   }
 
@@ -303,9 +303,9 @@ async function handleSuccessfulPayment(
     .eq('id', attemptId);
 
   if (attemptError) {
-    logStep("Failed to update attempt", { error: attemptError.message });
+    requestLog("Failed to update attempt", { error: attemptError.message });
   } else {
-    logStep("Access granted successfully via webhook", { 
+    requestLog("Access granted successfully via webhook", {
       attemptId, 
       eventId, 
       purchaseType, 

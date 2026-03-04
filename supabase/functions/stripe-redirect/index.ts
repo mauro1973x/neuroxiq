@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { createLogger } from "../_shared/logger.ts";
 
 /**
  * GET endpoint that creates a Stripe Checkout session and returns a 303 redirect.
@@ -8,11 +9,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
  * 
  * Usage: /stripe-redirect?attemptId=UUID&product=report|certificate|bundle
  */
-
-const logStep = (step: string, details?: unknown) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[STRIPE-REDIRECT] ${step}${detailsStr}`);
-};
 
 const getRequestOrigin = (req: Request): string => {
   const appUrl = Deno.env.get("APP_URL");
@@ -42,6 +38,9 @@ const getRequestOrigin = (req: Request): string => {
 };
 
 serve(async (req) => {
+  const logger = createLogger("stripe-redirect", req);
+  const { logStep, requestId } = logger;
+
   // Only allow GET requests
   if (req.method !== "GET") {
     return new Response("Method not allowed", { status: 405 });
@@ -283,7 +282,7 @@ serve(async (req) => {
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message: errorMessage });
-    return new Response(`Error: ${errorMessage}`, { status: 500 });
+    logger.error("redirect_failed", { message: errorMessage });
+    return new Response(`Error: ${errorMessage} (requestId: ${requestId})`, { status: 500 });
   }
 });

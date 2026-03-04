@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import { logClientEvent } from '@/lib/observability';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -27,12 +28,23 @@ const Login = () => {
     const { error } = await signIn(email, password);
 
     if (error) {
+      void logClientEvent({
+        event: 'login_failed',
+        level: 'warn',
+        category: 'auth',
+        message: error.message,
+      });
       toast({
         title: 'Erro ao entrar',
         description: 'Email ou senha incorretos. Tente novamente.',
         variant: 'destructive',
       });
     } else {
+      void logClientEvent({
+        event: 'login_success',
+        category: 'auth',
+        metadata: { redirectTo },
+      });
       toast({
         title: 'Bem-vindo de volta!',
         description: 'Login realizado com sucesso.',

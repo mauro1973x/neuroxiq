@@ -1,15 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { createLogger } from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-
-const logStep = (step: string, details?: unknown) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
 const getRequestOrigin = (req: Request): string => {
@@ -46,6 +42,9 @@ interface CheckoutRequest {
 }
 
 serve(async (req) => {
+  const logger = createLogger("create-checkout", req);
+  const { logStep, requestId } = logger;
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -260,18 +259,19 @@ serve(async (req) => {
       logStep("Warning: Failed to create purchase record", { error: purchaseError.message });
     }
 
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       url: session.url, 
       sessionId: session.id,
-      pix_available: pixAvailable 
+      pix_available: pixAvailable,
+      requestId,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    logger.error("checkout_failed", { message: errorMessage });
+    return new Response(JSON.stringify({ error: errorMessage, requestId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

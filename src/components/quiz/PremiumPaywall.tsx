@@ -8,6 +8,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { PurchaseType } from '@/lib/checkout';
+import { logClientEvent } from '@/lib/observability';
 
 interface PremiumPaywallProps {
   attemptId: string;
@@ -69,6 +70,11 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
     }
     
     console.log('[PAYWALL] Creating Stripe checkout session...', { purchaseType, attemptId });
+    void logClientEvent({
+      event: 'checkout_started',
+      category: 'payment',
+      metadata: { attemptId, purchaseType, source: 'premium_paywall' },
+    });
     updateProductState(productKey, { state: 'loading', error: null });
 
     // Set timeout to prevent infinite loading
@@ -105,6 +111,12 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
         // Check for auth errors (401/403)
         if (error.message?.includes('401') || error.message?.includes('403') || 
             error.message?.includes('not authenticated') || error.message?.includes('Unauthorized')) {
+          void logClientEvent({
+            event: 'checkout_requires_auth',
+            level: 'warn',
+            category: 'payment',
+            metadata: { attemptId, purchaseType, source: 'premium_paywall' },
+          });
           updateProductState(productKey, { state: 'error', error: 'Faça login para continuar' });
           toast({
             variant: "destructive",
@@ -126,6 +138,11 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
 
       console.log('[PAYWALL] Checkout URL received:', data.url.substring(0, 80) + '...');
       console.log('[PAYWALL] Redirecting...');
+      void logClientEvent({
+        event: 'checkout_redirected_to_stripe',
+        category: 'payment',
+        metadata: { attemptId, purchaseType, source: 'premium_paywall' },
+      });
 
       // Redirect using window.location.assign (same tab, no popup blocker issues)
       window.location.assign(data.url);
@@ -136,6 +153,13 @@ const PremiumPaywall = ({ attemptId, onPaymentSuccess }: PremiumPaywallProps) =>
 
       const message = err instanceof Error ? err.message : 'Erro desconhecido';
       console.error('[PAYWALL] Error creating checkout session:', err);
+      void logClientEvent({
+        event: 'checkout_failed',
+        level: 'error',
+        category: 'payment',
+        message,
+        metadata: { attemptId, purchaseType, source: 'premium_paywall' },
+      });
       
       updateProductState(productKey, { state: 'error', error: message });
       toast({

@@ -1,15 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { createLogger } from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-
-const logStep = (step: string, details?: unknown) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[VERIFY-SESSION] ${step}${detailsStr}`);
 };
 
 interface VerifyRequest {
@@ -17,6 +13,9 @@ interface VerifyRequest {
 }
 
 serve(async (req) => {
+  const logger = createLogger("verify-session", req);
+  const { logStep, requestId } = logger;
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -110,7 +109,8 @@ serve(async (req) => {
         alreadyProcessed: true,
         attemptId,
         purchaseType,
-        message: "Payment confirmed and access granted"
+        message: "Payment confirmed and access granted",
+        requestId,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -197,7 +197,8 @@ serve(async (req) => {
           alreadyProcessed: false,
           attemptId,
           purchaseType,
-          message: "Payment confirmed and access granted"
+          message: "Payment confirmed and access granted",
+          requestId,
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
@@ -210,15 +211,16 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       verified: false, 
       status: session.payment_status,
-      message: "Payment not yet completed"
+      message: "Payment not yet completed",
+      requestId,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    logger.error("verify_session_failed", { message: errorMessage });
+    return new Response(JSON.stringify({ error: errorMessage, requestId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

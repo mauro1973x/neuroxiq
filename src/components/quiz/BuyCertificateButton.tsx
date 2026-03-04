@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import certificatePreview from '@/assets/certificate-preview.png';
+import { logClientEvent } from '@/lib/observability';
 
 interface BuyCertificateButtonProps {
   attemptId: string;
@@ -43,6 +44,11 @@ const BuyCertificateButton = ({
 
     try {
       console.log('[BUY-CERTIFICATE] Initiating checkout for attempt:', attemptId);
+      void logClientEvent({
+        event: 'checkout_started',
+        category: 'payment',
+        metadata: { attemptId, purchaseType: 'certificate', source: 'buy_certificate' },
+      });
       
       // Use create-checkout edge function which properly handles auth
       const { data, error } = await supabase.functions.invoke('create-checkout', {
@@ -57,6 +63,12 @@ const BuyCertificateButton = ({
         console.error('[BUY-CERTIFICATE] Edge function error:', error);
         if (error.message?.includes('401') || error.message?.includes('403') ||
             error.message?.includes('not authenticated') || error.message?.includes('Unauthorized')) {
+          void logClientEvent({
+            event: 'checkout_requires_auth',
+            level: 'warn',
+            category: 'payment',
+            metadata: { attemptId, purchaseType: 'certificate', source: 'buy_certificate' },
+          });
           setErrorMessage('Faça login para continuar');
           setButtonState('error');
           navigate(`/login?returnTo=${encodeURIComponent(`/resultado/${attemptId}`)}`);
@@ -71,6 +83,11 @@ const BuyCertificateButton = ({
       }
 
       console.log('[BUY-CERTIFICATE] Checkout URL received, redirecting...');
+      void logClientEvent({
+        event: 'checkout_redirected_to_stripe',
+        category: 'payment',
+        metadata: { attemptId, purchaseType: 'certificate', source: 'buy_certificate' },
+      });
       setButtonState('redirecting');
       onPaymentInitiated?.();
 
@@ -82,6 +99,13 @@ const BuyCertificateButton = ({
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao processar checkout';
       console.error('[BUY-CERTIFICATE] Checkout error:', err);
+      void logClientEvent({
+        event: 'checkout_failed',
+        level: 'error',
+        category: 'payment',
+        message,
+        metadata: { attemptId, purchaseType: 'certificate', source: 'buy_certificate' },
+      });
       setErrorMessage(message);
       setButtonState('error');
     }

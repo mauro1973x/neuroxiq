@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { logClientEvent } from "@/lib/observability";
 
 const benefits = [
   "Acesso a testes gratuitos",
@@ -45,12 +46,23 @@ const Cadastro = () => {
     const { error } = await signUp(email, password, fullName);
 
     if (error) {
+      void logClientEvent({
+        event: "signup_failed",
+        level: "warn",
+        category: "auth",
+        message: error.message,
+      });
       toast({
         title: "Erro ao criar conta",
         description: error.message || "Tente novamente mais tarde.",
         variant: "destructive",
       });
     } else {
+      void logClientEvent({
+        event: "signup_success",
+        category: "auth",
+        metadata: { redirectTo },
+      });
       toast({
         title: "Conta criada com sucesso!",
         description: "Bem-vindo ao NEUROX.",
